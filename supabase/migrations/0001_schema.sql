@@ -378,6 +378,18 @@ drop policy if exists prog_select on public.progression_requests;
 create policy prog_select on public.progression_requests for select to authenticated
   using (student_id = auth.uid() or public.is_trainer_of(student_id));
 
+-- Permisos de la API explícitos (por si el proyecto no los otorga automáticamente).
+-- La seguridad fila por fila la siguen dando las políticas RLS de arriba.
+grant usage on schema public to anon, authenticated;
+grant select on public.profiles to authenticated;
+grant select, insert, update, delete on
+  public.exercises, public.routines, public.routine_days, public.routine_exercises,
+  public.routine_exercise_alternatives, public.set_logs, public.measurements
+  to authenticated;
+grant select on public.progression_requests to authenticated;
+grant all on all tables in schema public to service_role;
+grant execute on all functions in schema public to authenticated, service_role;
+
 grant execute on function public.resolve_progression(uuid, boolean, numeric, text) to authenticated;
 grant execute on function public.mark_progressions_seen(uuid[]) to authenticated;
 
