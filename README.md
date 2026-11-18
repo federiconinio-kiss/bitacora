@@ -2,6 +2,15 @@
 
 Web app para profe y alumnos. Funciona en el celular (se puede instalar como app desde el navegador) y en la compu. La estética es la de una planilla de papel: renglones, tinta azul, sellos y post-its.
 
+## Capturas
+
+| Alumno: planilla del día | Alumno: festejo | Profe: avisos de progresión |
+|---|---|---|
+| ![Planilla](capturas/12-sheet.png) | ![Festejo](capturas/22-celebration.png) | ![Avisos](capturas/20-trainer-inbox.png) |
+
+![Armador de rutinas](capturas/02-builder.png)
+![Historial semanal](capturas/30-history-desktop.png)
+
 ## Qué hace
 
 **Alumno** (pensado para el celular)
