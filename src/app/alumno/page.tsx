@@ -87,7 +87,7 @@ export default async function StudentHome() {
                 <ol style={{ margin: '8px 0 0', paddingLeft: 22 }}>
                   {d.exercises.map((e) => (
                     <li key={e.id} style={{ lineHeight: '32px' }}>
-                      {e.exercise.name} <span className="type" style={{ whiteSpace: 'nowrap' }}>{e.sets}×{e.rep_min}–{e.rep_max}{e.target_weight != null && ` · ${fmtKg(e.target_weight)}`}</span>
+                      {e.exercise.name} <span className="type" style={{ whiteSpace: 'nowrap' }}>{e.sets}×{e.rep_min}–{e.rep_max}{e.target_weight != null ? ` · ${fmtKg(e.target_weight)}` : ' · carga a elegir'}</span>
                     </li>
                   ))}
                 </ol>

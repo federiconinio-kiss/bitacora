@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Exercise, FullRoutine } from '@/lib/types';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { DAYS, num } from '@/lib/utils';
+import { DAYS, fmtDate, num } from '@/lib/utils';
 import ExercisePicker from '@/components/ExercisePicker';
 import VideoButton from '@/components/VideoButton';
 import { IconBack, IconDown, IconPlus, IconSwap, IconTrash, IconUp, IconX } from '@/components/Icons';
@@ -244,9 +244,15 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx 
                   <NumField label="Series" value={e.sets} onSave={(v) => v && saveRex(d.id, e, { sets: Math.max(1, Math.min(12, Math.round(v))) })} />
                   <NumField label="Reps mín" value={e.rep_min} onSave={(v) => v && saveRex(d.id, e, { rep_min: Math.round(v) })} />
                   <NumField label="Reps máx" value={e.rep_max} onSave={(v) => v && saveRex(d.id, e, { rep_max: Math.round(v) })} />
-                  <NumField label="Carga (kg)" value={e.target_weight} allowEmpty onSave={(v) => saveRex(d.id, e, { target_weight: v })} />
+                  <NumField label="Carga (kg)" value={e.target_weight} allowEmpty placeholder="a elegir"
+                    onSave={(v) => saveRex(d.id, e, { target_weight: v, target_source: 'trainer', target_set_on: null })} />
                   <NumField label="Pausa (seg)" value={e.rest_seconds} allowEmpty onSave={(v) => saveRex(d.id, e, { rest_seconds: v == null ? null : Math.round(v) })} />
                 </div>
+                {e.target_weight == null ? (
+                  <p className="type" style={{ margin: '4px 0 0', color: 'var(--amber)' }}>Sin carga: el alumno la define en su primera sesión.</p>
+                ) : e.target_source === 'student' ? (
+                  <p className="type" style={{ margin: '4px 0 0', color: 'var(--amber)' }}>Carga inicial elegida por el alumno{e.target_set_on ? ` el ${fmtDate(e.target_set_on)}` : ''}. Si la cambiás, queda la tuya.</p>
+                ) : null}
                 <input className="input" style={{ fontSize: '1.25rem', marginTop: 6 }} placeholder="Nota técnica para el alumno (opcional)" defaultValue={e.notes}
                   onBlur={(ev) => ev.target.value !== e.notes && saveRex(d.id, e, { notes: ev.target.value })} />
                 <div className="swap">
@@ -287,11 +293,11 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx 
   );
 }
 
-function NumField({ label, value, onSave, allowEmpty }: { label: string; value: number | null; onSave: (v: number | null) => void; allowEmpty?: boolean }) {
+function NumField({ label, value, onSave, allowEmpty, placeholder }: { label: string; value: number | null; onSave: (v: number | null) => void; allowEmpty?: boolean; placeholder?: string }) {
   return (
     <div className="field">
       <label>{label}</label>
-      <input className="input" inputMode="decimal" defaultValue={value ?? ''} placeholder={allowEmpty ? '—' : ''}
+      <input className="input" inputMode="decimal" defaultValue={value ?? ''} placeholder={placeholder ?? (allowEmpty ? '—' : '')}
         onBlur={(e) => {
           const v = num(e.target.value);
           if (v === (value == null ? null : Number(value))) return;

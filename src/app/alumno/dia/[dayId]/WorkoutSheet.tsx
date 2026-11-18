@@ -116,6 +116,10 @@ export default function WorkoutSheet({ studentId, date, day, initial, previous, 
         const ex: Exercise = isSwap ? rex.alternatives.find((a) => a.id === exId) ?? rex.exercise : rex.exercise;
         const prev = previous[rex.id] ?? [];
         const prevDate = prev[0]?.performed_on;
+        // Sin carga pautada por el profe: la de esta sesión pasa a ser la carga inicial.
+        const todayWeights = Array.from({ length: rex.sets }, (_, i) => num(cells[key(rex.id, i + 1)]?.weight)).filter((w): w is number => w != null);
+        const choosing = !isSwap && (rex.target_weight == null || (rex.target_source === 'student' && rex.target_set_on === date));
+        const shownTarget = choosing ? (todayWeights.length ? Math.min(...todayWeights) : null) : rex.target_weight;
         return (
           <section key={rex.id} className="sheet ex-card">
             <span className="punch" style={{ top: 24 }} />
@@ -127,13 +131,22 @@ export default function WorkoutSheet({ studentId, date, day, initial, previous, 
                 <div className="ex-meta">
                   <span><b>{rex.sets}</b> series</span>
                   <span><b>{rex.rep_min}–{rex.rep_max}</b> reps</span>
-                  {rex.target_weight != null && !isSwap && <span>carga <b className="mark">{fmtKg(rex.target_weight)}</b></span>}
+                  {!isSwap && shownTarget != null && (
+                    <span>carga <b className="mark">{fmtKg(shownTarget)}</b>{rex.target_source === 'student' || choosing ? ' (tuya)' : ''}</span>
+                  )}
+                  {!isSwap && shownTarget == null && <span>carga <b>la elegís vos</b></span>}
                   {rex.rest_seconds != null && <span>pausa <b>{rex.rest_seconds >= 60 ? `${+(rex.rest_seconds / 60).toFixed(1)}′` : `${rex.rest_seconds}″`}</b></span>}
                 </div>
               </div>
               <VideoButton exercise={ex} />
             </div>
             {rex.notes && <p className="note-hand" style={{ margin: '8px 0 0' }}>{rex.notes}</p>}
+            {choosing && (
+              <p className="notice amber small" style={{ margin: '10px 0 0' }}>
+                Elegí un peso con el que llegues a {rex.rep_min}–{rex.rep_max} reps con buena técnica. El de hoy queda como tu <b>carga inicial</b>
+                {todayWeights.length > 0 && <> (<b>{fmtKg(Math.min(...todayWeights))}</b>)</>} y tu profe lo va a ver.
+              </p>
+            )}
             {pending.has(rex.id) && !isSwap && (
               <p className="notice green small" style={{ margin: '10px 0 0' }}>¡Tope del rango alcanzado! Tu profe va a revisar la subida de carga.</p>
             )}
@@ -167,7 +180,7 @@ export default function WorkoutSheet({ studentId, date, day, initial, previous, 
                       <td className="n">{n}</td>
                       <td>
                         <input className="cell-in" inputMode="decimal" enterKeyHint="next" aria-label={`Peso serie ${n}`}
-                          placeholder={rex.target_weight != null && !isSwap ? String(rex.target_weight) : p?.weight?.toString() ?? '–'}
+                          placeholder={rex.target_weight != null && !isSwap ? String(rex.target_weight) : p?.weight?.toString() ?? 'kg'}
                           value={c.weight} onFocus={() => focusWeight(rex, n)} onChange={(e) => set(k, 'weight', e.target.value)} onBlur={() => saveCell(rex, n)} />
                         {p && <span className="prev">antes {p.weight ?? '–'}</span>}
                       </td>

@@ -51,6 +51,9 @@ export interface RoutineExercise {
   rep_min: number;
   rep_max: number;
   target_weight: number | null;
+  /** Quién definió la carga: el profe al armar la rutina o el alumno en su primera sesión. */
+  target_source: 'trainer' | 'student';
+  target_set_on: string | null;
   rest_seconds: number | null;
   notes: string;
 }

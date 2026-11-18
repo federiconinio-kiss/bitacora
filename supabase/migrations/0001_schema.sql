@@ -380,3 +380,42 @@ create policy prog_select on public.progression_requests for select to authentic
 
 grant execute on function public.resolve_progression(uuid, boolean, numeric, text) to authenticated;
 grant execute on function public.mark_progressions_seen(uuid[]) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- Carga inicial opcional: si el profe no la pauta, la define el alumno
+-- con el peso de su primera sesión de ese ejercicio.
+-- ---------------------------------------------------------------------
+alter table public.routine_exercises
+  add column if not exists target_source text not null default 'trainer'
+    check (target_source in ('trainer','student')),
+  add column if not exists target_set_on date;
+
+create or replace function public.set_initial_weight()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  rex public.routine_exercises%rowtype;
+  v_min numeric;
+begin
+  if new.weight is null then return new; end if;
+  select * into rex from public.routine_exercises where id = new.routine_exercise_id;
+  if not found or new.exercise_id <> rex.exercise_id then return new; end if; -- los reemplazos no cuentan
+
+  -- Sin carga pautada: la primera sesión del alumno fija la carga inicial.
+  -- Mientras siga siendo esa misma sesión, se ajusta al peso más bajo de sus series.
+  if rex.target_weight is null
+     or (rex.target_source = 'student' and rex.target_set_on = new.performed_on) then
+    select min(weight) into v_min from public.set_logs
+     where routine_exercise_id = rex.id and performed_on = new.performed_on
+       and exercise_id = rex.exercise_id and weight is not null;
+    update public.routine_exercises
+       set target_weight = v_min, target_source = 'student', target_set_on = new.performed_on
+     where id = rex.id;
+  end if;
+  return new;
+end $$;
+
+-- El nombre empieza con "a_" para que corra antes que el control de progresión.
+drop trigger if exists set_logs_a_initial_weight on public.set_logs;
+create trigger set_logs_a_initial_weight
+  after insert or update on public.set_logs
+  for each row execute function public.set_initial_weight();

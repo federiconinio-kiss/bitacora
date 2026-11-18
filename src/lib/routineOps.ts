@@ -15,7 +15,7 @@ export async function duplicateRoutine(sb: SupabaseClient, r: FullRoutine, stude
     for (const e of d.exercises) {
       const { data: ne, error: e2 } = await sb.from('routine_exercises').insert({
         day_id: nd.id, exercise_id: e.exercise_id, position: e.position, sets: e.sets, rep_min: e.rep_min, rep_max: e.rep_max,
-        target_weight: e.target_weight, rest_seconds: e.rest_seconds, notes: e.notes,
+        target_weight: e.target_weight, target_source: e.target_source, rest_seconds: e.rest_seconds, notes: e.notes,
       }).select('id').single();
       if (e2) throw e2;
       if (e.alternatives.length) {

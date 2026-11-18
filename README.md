@@ -100,6 +100,9 @@ src/app/(login, recuperar, auth/…)    acceso y recuperación de contraseña
 src/components/…                      gráficos, video, festejo y buscador de ejercicios
 ```
 
+### Carga inicial opcional
+Al armar la rutina, la carga (kg) de cada ejercicio es opcional. Si la dejás vacía, el alumno la define en su primera sesión: el peso más bajo que cargue ese día queda como su carga inicial. Mientras dure esa sesión la puede corregir; después ya no cambia. En el armador ves que la eligió el alumno. Si la modificás, pasa a ser tuya.
+
 ### Cómo funciona la doble progresión
 1. El alumno carga sus series. Un *trigger* de la base controla que **todas** las series pautadas tengan reps ≥ tope del rango y peso ≥ carga pautada. Si se cumple, crea un pedido pendiente. Los ejercicios de reemplazo no cuentan.
 2. El profe lo ve en **Avisos** y aprueba con el incremento que elija. La función `resolve_progression` actualiza la carga del ejercicio en la rutina.
