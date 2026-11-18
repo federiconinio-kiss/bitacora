@@ -1,0 +1,10 @@
+{
+  "name": "Bitácora — rutinas y progreso",
+  "short_name": "Bitácora",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e7e1d3",
+  "theme_color": "#e7e1d3",
+  "lang": "es",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
