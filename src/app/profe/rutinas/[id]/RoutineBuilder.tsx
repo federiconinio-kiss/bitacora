@@ -8,7 +8,8 @@ import { DAYS, fmtDate, num } from '@/lib/utils';
 import ExercisePicker from '@/components/ExercisePicker';
 import VideoButton from '@/components/VideoButton';
 import { IconBack, IconDown, IconPlus, IconSwap, IconTrash, IconUp, IconX } from '@/components/Icons';
-import type { Profile } from '@/lib/types';
+import type { Profile, RoutineReview, TrainingInfo } from '@/lib/types';
+import AiReview from './AiReview';
 
 type Day = FullRoutine['days'][number];
 type Rex = Day['exercises'][number];
@@ -25,7 +26,7 @@ const TEMPLATES: { label: string; days: { title: string; dow: number }[] }[] = [
   { label: 'Push / Pull / Legs', days: [{ title: 'Empuje', dow: 1 }, { title: 'Tracción', dow: 3 }, { title: 'Piernas', dow: 5 }] },
 ];
 
-export default function RoutineBuilder({ initial, student, exercises: initialEx }: { initial: FullRoutine; student: Profile; exercises: Exercise[] }) {
+export default function RoutineBuilder({ initial, student, exercises: initialEx, trainingInfo, reviews }: { initial: FullRoutine; student: Profile; exercises: Exercise[]; trainingInfo: TrainingInfo | null; reviews: RoutineReview[] }) {
   const router = useRouter();
   const sb = supabaseBrowser();
   const [r, setR] = useState<FullRoutine>(initial);
@@ -170,7 +171,10 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx 
             <button className="btn sm" onClick={() => publish(false)}>Pasar a borrador</button>
           </>
         ) : (
-          <button className="btn green" onClick={() => publish(true)}>Publicar para el alumno</button>
+          <>
+            <a className="btn sm" href="#revision">Revisar con IA ↓</a>
+            <button className="btn green" onClick={() => publish(true)}>Publicar para el alumno</button>
+          </>
         )}
       </div>
       {err && <p className="notice red" role="alert">{err} <button className="btn ghost sm" onClick={() => setErr(null)}>ok</button></p>}
@@ -277,6 +281,15 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx 
       ))}
 
       <button className="btn" onClick={() => addDay()}><IconPlus /> Agregar día</button>
+
+      <AiReview
+        routineId={r.id}
+        studentId={student.id}
+        studentName={student.full_name || student.email}
+        goal={r.goal}
+        initialLevel={trainingInfo?.level ?? null}
+        initialReviews={reviews}
+      />
 
       {picker && (
         <ExercisePicker

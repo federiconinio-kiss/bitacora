@@ -431,3 +431,38 @@ drop trigger if exists set_logs_a_initial_weight on public.set_logs;
 create trigger set_logs_a_initial_weight
   after insert or update on public.set_logs
   for each row execute function public.set_initial_weight();
+
+-- ---------------------------------------------------------------------
+-- Ficha privada del profe sobre cada alumno (el alumno no la ve)
+-- ---------------------------------------------------------------------
+create table if not exists public.student_training_info (
+  student_id  uuid primary key references public.profiles(id) on delete cascade,
+  level       text check (level in ('principiante','intermedio','avanzado')),
+  notes       text not null default '',   -- lesiones, experiencia, preferencias
+  updated_at  timestamptz not null default now()
+);
+alter table public.student_training_info enable row level security;
+drop policy if exists sti_trainer on public.student_training_info;
+create policy sti_trainer on public.student_training_info for all to authenticated
+  using (public.is_trainer_of(student_id)) with check (public.is_trainer_of(student_id));
+grant select, insert, update, delete on public.student_training_info to authenticated;
+
+-- ---------------------------------------------------------------------
+-- Revisiones de rutina hechas con IA (historial para el profe)
+-- ---------------------------------------------------------------------
+create table if not exists public.routine_reviews (
+  id           uuid primary key default gen_random_uuid(),
+  routine_id   uuid not null references public.routines(id) on delete cascade,
+  trainer_id   uuid not null references public.profiles(id) on delete cascade default auth.uid(),
+  methodology  text not null check (methodology in ('piramide','heavy_duty','ambas')),
+  level        text,
+  result       jsonb not null,
+  created_at   timestamptz not null default now()
+);
+create index if not exists routine_reviews_routine_idx on public.routine_reviews(routine_id, created_at desc);
+alter table public.routine_reviews enable row level security;
+drop policy if exists reviews_trainer on public.routine_reviews;
+create policy reviews_trainer on public.routine_reviews for all to authenticated
+  using (public.can_write_routine(routine_id))
+  with check (public.can_write_routine(routine_id) and trainer_id = auth.uid());
+grant select, insert, delete on public.routine_reviews to authenticated;

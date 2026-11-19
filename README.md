@@ -71,6 +71,7 @@ Web app para profe y alumnos. Funciona en el celular (se puede instalar como app
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`: es secreta, nunca la compartas.
    - `NEXT_PUBLIC_SITE_URL`: la URL final de la app.
+   - `ANTHROPIC_API_KEY` (opcional): para la revisión de rutinas con IA (ver más abajo).
 4. Deploy. Entrá con tu usuario de profe.
 
 ### 3. Instalarla en el celular
@@ -99,6 +100,19 @@ src/app/profe/…                       avisos, alumnos, armador de rutinas y bi
 src/app/(login, recuperar, auth/…)    acceso y recuperación de contraseña
 src/components/…                      gráficos, video, festejo y buscador de ejercicios
 ```
+
+### Revisión de rutinas con IA (opcional)
+Antes de publicar una rutina, el profe puede pedirle a Claude (IA de Anthropic) una revisión:
+- **Marcos de referencia** (se elige uno): *The Muscle & Strength Pyramid* (Helms), *Heavy Duty* (Mentzer), o comparar ambos.
+- **Qué evalúa:** si la rutina se adecua al **nivel del alumno** (principiante, intermedio o avanzado) y a su **objetivo**, cómo queda el volumen semanal y la frecuencia por grupo muscular, y qué cambios concretos haría (día, ejercicio, cambio y motivo).
+- **Qué datos usa:** el nivel, la edad, la última medición y las **notas privadas** del profe (lesiones, experiencia). El nivel y las notas los carga y los ve sólo el profe.
+- **Resultado:** queda guardado en la rutina. La rutina no se modifica sola: el profe decide qué aplicar.
+
+**Configurarla:**
+1. En <https://console.anthropic.com> creá una cuenta, cargá crédito (*Billing*) y generá una clave en *API Keys*.
+2. En Vercel, en *Settings → Environment Variables*, agregá `ANTHROPIC_API_KEY` con esa clave y hacé *Redeploy*.
+
+Cada revisión cuesta aproximadamente USD 0,05–0,15 y tarda entre 1 y 2 minutos.
 
 ### Carga inicial opcional
 Al armar la rutina, la carga (kg) de cada ejercicio es opcional. Si la dejás vacía, el alumno la define en su primera sesión: el peso más bajo que cargue ese día queda como su carga inicial. Mientras dure esa sesión la puede corregir; después ya no cambia. En el armador ves que la eligió el alumno. Si la modificás, pasa a ser tuya.

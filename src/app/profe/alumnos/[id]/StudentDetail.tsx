@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { FullRoutine, Measurement, Profile, SetLog } from '@/lib/types';
+import type { FullRoutine, Measurement, Profile, SetLog, TrainingInfo } from '@/lib/types';
+import TrainingInfoForm, { levelLabel } from '@/components/LevelPicker';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { daysBetween, fmtDate, initials, num, todayISO } from '@/lib/utils';
 import { duplicateRoutine } from '@/lib/routineOps';
@@ -12,9 +13,10 @@ import { deleteStudent, sendAccessEmail, setStudentActive, setTempPassword } fro
 
 type Tab = 'rutinas' | 'historial' | 'datos';
 
-export default function StudentDetail({ student, routines, logs, measurements, initialTab }: {
-  student: Profile; routines: FullRoutine[]; logs: SetLog[]; measurements: Measurement[]; initialTab: Tab;
+export default function StudentDetail({ student, routines, logs, measurements, initialTab, trainingInfo }: {
+  student: Profile; routines: FullRoutine[]; logs: SetLog[]; measurements: Measurement[]; initialTab: Tab; trainingInfo: TrainingInfo | null;
 }) {
+  const [level, setLevel] = useState(trainingInfo?.level ?? null);
   const router = useRouter();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [busy, setBusy] = useState(false);
@@ -64,6 +66,9 @@ export default function StudentDetail({ student, routines, logs, measurements, i
             {lastLog ? `entrenó ${daysBetween(lastLog, todayISO()) === 0 ? 'hoy' : `hace ${daysBetween(lastLog, todayISO())} días`}` : 'sin entrenamientos'}
             {!student.active && ' · pausado'}
           </p>
+          <button className={`tag ${level ? 'ink' : 'amber'}`} style={{ marginTop: 4, cursor: 'pointer', background: 'none' }} onClick={() => setTab('datos')}>
+            {level ? levelLabel(level) : 'Cargar nivel'}
+          </button>
         </div>
       </div>
 
@@ -106,7 +111,10 @@ export default function StudentDetail({ student, routines, logs, measurements, i
 
       {tab === 'datos' && (
         <div className="grid-2" style={{ alignItems: 'start' }}>
-          <EditStudent student={student} onSaved={(t) => { setMsg({ ok: true, text: t }); router.refresh(); }} />
+          <div className="stack-lg">
+            <TrainingInfoForm studentId={student.id} initial={trainingInfo} onSaved={(i) => setLevel(i.level)} />
+            <EditStudent student={student} onSaved={(t) => { setMsg({ ok: true, text: t }); router.refresh(); }} />
+          </div>
           <section className="sheet plain stack">
             <h2 className="h-hand">Acceso</h2>
             <p className="type" style={{ margin: 0 }}>{student.email}</p>

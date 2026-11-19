@@ -121,3 +121,27 @@ export const MEASURE_FIELDS: { key: keyof Measurement; label: string; unit: stri
   { key: 'thigh', label: 'Muslo', unit: 'cm' },
   { key: 'body_fat', label: '% grasa', unit: '%' },
 ];
+
+export type Level = 'principiante' | 'intermedio' | 'avanzado';
+export const LEVELS: { key: Level; label: string; hint: string }[] = [
+  { key: 'principiante', label: 'Principiante', hint: 'menos de ~1 año entrenando' },
+  { key: 'intermedio', label: 'Intermedio', hint: '~1 a 3 años' },
+  { key: 'avanzado', label: 'Avanzado', hint: 'más de 3 años, cerca de su potencial' },
+];
+
+/** Ficha privada del profe sobre el alumno (el alumno no la ve). */
+export interface TrainingInfo {
+  student_id: string;
+  level: Level | null;
+  notes: string;
+  updated_at: string;
+}
+
+export interface RoutineReview {
+  id: string;
+  routine_id: string;
+  methodology: 'piramide' | 'heavy_duty' | 'ambas';
+  level: Level | null;
+  result: import('./ai/review-types').Review;
+  created_at: string;
+}

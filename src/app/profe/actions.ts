@@ -27,7 +27,7 @@ function friendly(msg: string) {
   return msg;
 }
 
-export async function createStudent(input: { email: string; full_name: string; age: number | null; mode: 'invite' | 'password'; password?: string }): Promise<Result> {
+export async function createStudent(input: { email: string; full_name: string; age: number | null; mode: 'invite' | 'password'; password?: string; level?: 'principiante' | 'intermedio' | 'avanzado' | null }): Promise<Result> {
   try {
     const { me } = await requireUser('trainer');
     const admin = supabaseAdmin();
@@ -57,6 +57,9 @@ export async function createStudent(input: { email: string; full_name: string; a
       id: userId, email, role: 'student', trainer_id: me.id, full_name: input.full_name.trim(), age: input.age, active: true,
     });
     if (error) return { ok: false, error: error.message };
+    if (input.level) {
+      await admin.from('student_training_info').upsert({ student_id: userId, level: input.level }, { onConflict: 'student_id' });
+    }
     revalidatePath('/profe/alumnos');
     return { ok: true, id: userId, message: input.mode === 'invite' ? `Le enviamos la invitación a ${email}.` : 'Alumno creado. Pasale su email y la contraseña temporal.' };
   } catch (e) {
