@@ -5,13 +5,14 @@ import { z } from 'zod/v4';
 import type { FullRoutine, Measurement } from '@/lib/types';
 import { DAYS } from '@/lib/utils';
 
-export type Methodology = 'piramide' | 'heavy_duty' | 'ambas';
+export type Methodology = 'evidencia' | 'piramide' | 'heavy_duty' | 'ambas';
 export type Level = 'principiante' | 'intermedio' | 'avanzado';
 
 export const METHODOLOGIES: Record<Methodology, string> = {
+  evidencia: 'Evidencia científica actual y práctica aceptada',
   piramide: 'The Muscle & Strength Pyramid (Training)',
   heavy_duty: 'Heavy Duty (alta intensidad)',
-  ambas: 'Comparar ambas',
+  ambas: 'Comparar Pirámide y Heavy Duty',
 };
 
 // ---------------------------------------------------------------------------
@@ -75,7 +76,18 @@ MARCO "Heavy Duty" (Mike Mentzer, entrenamiento de alta intensidad). Ideas centr
 - Progresión: subir carga o repeticiones en cada sesión; si no se progresa, la respuesta es más descanso, no más volumen.
 - Reps controladas y tempo lento.
 
-Si Fede pide comparar ambos marcos, evaluá la rutina con los dos, mostrá dónde coinciden y dónde no, y en las sugerencias aclará a qué marco responde cada una (por ejemplo, empezando el motivo con "Pirámide:" o "Heavy Duty:").
+MARCO "Evidencia científica actual y práctica aceptada". No sigas a un autor: usá el consenso de la investigación en hipertrofia y fuerza (metaanálisis y revisiones de los últimos años) y lo que la práctica de entrenadores con experiencia da por bueno. Ideas centrales:
+- Volumen: la relación dosis-respuesta es la variable más fuerte. Como referencia, unas 10–20 series efectivas semanales por grupo muscular; menos de ~10 suele quedarse corto para un intermedio y más de ~20 rinde poco o compromete la recuperación, salvo en grupos prioritarios de avanzados. Contá los músculos sinérgicos con criterio (por ejemplo, el press trabaja tríceps y deltoides anterior), sin igualarlos a un ejercicio directo.
+- Frecuencia: con el mismo volumen semanal, la frecuencia importa poco, pero repartir cada grupo en 2 o más sesiones ayuda a sostener la calidad de las series y a manejar volúmenes altos.
+- Cercanía al fallo: la mayoría de las series entre 0 y 3 repeticiones en reserva. Ir al fallo en aislamientos y máquinas es razonable; en compuestos pesados conviene dejar 1–3 en reserva por fatiga y riesgo.
+- Cargas y repeticiones: la hipertrofia es similar en un rango amplio (aprox. 5–30 repeticiones) si las series se llevan cerca del fallo. Para fuerza máxima hacen falta cargas pesadas (aprox. 1–6 repeticiones) en los ejercicios donde se quiere ser fuerte.
+- Selección y técnica: rangos de movimiento completos; hay evidencia creciente de que enfatizar la posición de estiramiento del músculo (por ejemplo, curl inclinado, extensión de tríceps sobre la cabeza, sentadilla profunda, curl femoral sentado) favorece la hipertrofia. Cubrir todos los patrones (empuje y tracción horizontal y vertical, sentadilla, bisagra de cadera, unilaterales) y equilibrar empuje y tracción.
+- Descansos: unos 2–3 minutos en compuestos y 1–2 minutos en aislamientos; descansar muy poco reduce el volumen efectivo.
+- Progresión y gestión de la fatiga: sobrecarga progresiva medible (por ejemplo, doble progresión), descargas cuando caen el rendimiento o la recuperación, y priorizar al principio de la sesión lo más importante para el objetivo.
+- Práctica aceptada: entrada en calor específica, compuestos antes que aislamientos, sesiones de duración realista (aprox. 45–90 minutos), adherencia y preferencias del alumno, y adaptar los ejercicios ante lesiones o molestias.
+- Si una recomendación tiene evidencia débil o discutida, decilo ("la evidencia es limitada", "es una práctica habitual") en vez de presentarla como un hecho.
+
+Si Fede pide comparar Pirámide y Heavy Duty, evaluá la rutina con los dos, mostrá dónde coinciden y dónde no, y en las sugerencias aclará a qué marco responde cada una (por ejemplo, empezando el motivo con "Pirámide:" o "Heavy Duty:").
 
 NIVEL DEL ALUMNO. Ajustá todo al nivel:
 - Principiante (menos de ~1 año entrenando de forma consistente): aprende técnica, progresa sesión a sesión con poco volumen, ejercicios simples y estables (máquinas y básicos), lejos del fallo en compuestos. El fallo y las técnicas de intensidad no son prioridad; si el marco es Heavy Duty, adaptalo con prudencia.

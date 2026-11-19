@@ -16,7 +16,8 @@ export type Review = {
   puntos_fuertes: string[];
 };
 export const METHODOLOGY_LABELS = {
+  evidencia: 'Evidencia científica',
   piramide: 'Muscle & Strength Pyramid',
   heavy_duty: 'Heavy Duty',
-  ambas: 'Comparar ambas',
+  ambas: 'Comparar Pirámide y Heavy Duty',
 } as const;

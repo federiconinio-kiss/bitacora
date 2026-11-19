@@ -694,3 +694,8 @@ returns void language sql security definer set search_path = public as $$
    where id = any(p_ids) and public.is_trainer_of(student_id);
 $$;
 grant execute on function public.mark_checkins_seen(uuid[]) to authenticated;
+
+-- Nuevo marco de revisión: evidencia científica actual
+alter table public.routine_reviews drop constraint if exists routine_reviews_methodology_check;
+alter table public.routine_reviews add constraint routine_reviews_methodology_check
+  check (methodology in ('evidencia','piramide','heavy_duty','ambas'));

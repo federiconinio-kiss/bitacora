@@ -103,7 +103,7 @@ src/components/…                      gráficos, video, festejo y buscador de 
 
 ### Revisión de rutinas con IA (opcional)
 Antes de publicar una rutina, el profe puede pedirle a Claude (IA de Anthropic) una revisión:
-- **Marcos de referencia** (se elige uno): *The Muscle & Strength Pyramid* (Helms), *Heavy Duty* (Mentzer), o comparar ambos.
+- **Marcos de referencia** (se elige uno): *Evidencia científica* (consenso actual de la investigación y práctica aceptada), *The Muscle & Strength Pyramid* (Helms), *Heavy Duty* (Mentzer), o comparar Pirámide y Heavy Duty.
 - **Qué evalúa:** si la rutina se adecua al **nivel del alumno** (principiante, intermedio o avanzado) y a su **objetivo**, cómo queda el volumen semanal y la frecuencia por grupo muscular, y qué cambios concretos haría (día, ejercicio, cambio y motivo).
 - **Qué datos usa:** el nivel, la edad, la última medición y las **notas privadas** del profe (lesiones, experiencia). El nivel y las notas los carga y los ve sólo el profe.
 - **Resultado:** queda guardado en la rutina. La rutina no se modifica sola: el profe decide qué aplicar.

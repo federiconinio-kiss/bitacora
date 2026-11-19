@@ -143,7 +143,7 @@ export interface TrainingInfo {
 export interface RoutineReview {
   id: string;
   routine_id: string;
-  methodology: 'piramide' | 'heavy_duty' | 'ambas';
+  methodology: 'evidencia' | 'piramide' | 'heavy_duty' | 'ambas';
   level: Level | null;
   result: import('./ai/review-types').Review;
   created_at: string;

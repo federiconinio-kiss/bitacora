@@ -25,7 +25,7 @@ export default function AiReview({ routineId, studentId, studentName, goal, init
   routineId: string; studentId: string; studentName: string; goal: string; initialLevel: Level | null; initialReviews: RoutineReview[];
 }) {
   const [level, setLevel] = useState<Level | null>(initialLevel);
-  const [method, setMethod] = useState<Methodology>('piramide');
+  const [method, setMethod] = useState<Methodology>('evidencia');
   const [reviews, setReviews] = useState(initialReviews);
   const [shownId, setShownId] = useState(initialReviews[0]?.id ?? null);
   const [busy, setBusy] = useState(false);
@@ -108,7 +108,8 @@ export default function AiReview({ routineId, studentId, studentName, goal, init
               ))}
             </div>
             <span className="small muted">
-              {method === 'piramide' ? 'Volumen, intensidad y frecuencia según Helms (RIR, 10–20 series por grupo, 2×/semana).'
+              {method === 'evidencia' ? 'Consenso de la investigación actual (volumen, cercanía al fallo, ejercicios en estiramiento, descansos) y la práctica aceptada en el gimnasio.'
+                : method === 'piramide' ? 'Volumen, intensidad y frecuencia según Helms (RIR, 10–20 series por grupo, 2×/semana).'
                 : method === 'heavy_duty' ? 'Alta intensidad según Mentzer: pocas series al fallo y mucha recuperación.'
                 : 'Evalúa con los dos marcos y te muestra en qué coinciden y en qué no.'}
             </span>
