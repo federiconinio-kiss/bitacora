@@ -23,6 +23,39 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client-17
 
+      - name: Revisar la dirección de la base (sin mostrar la contraseña)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python3 - <<'PY'
+          import os, sys, urllib.parse as u
+          raw = os.environ.get('SUPABASE_DB_URL', '')
+          if not raw:
+              sys.exit('Falta el secret SUPABASE_DB_URL.')
+          problemas = []
+          if raw != raw.strip():
+              problemas.append('la dirección tiene espacios o saltos de línea al principio o al final')
+          p = u.urlsplit(raw.strip())
+          user, pwd, host = p.username or '', p.password or '', p.hostname or ''
+          print(f'usuario: {user}')
+          print(f'servidor: {host}:{p.port}')
+          print(f'base: {p.path.lstrip("/")}')
+          print(f'contraseña: {len(pwd)} caracteres')
+          if p.scheme not in ('postgres', 'postgresql'):
+              problemas.append('no empieza con postgresql://')
+          if '[' in pwd or ']' in pwd or 'YOUR-PASSWORD' in pwd:
+              problemas.append('la contraseña todavía tiene corchetes o dice YOUR-PASSWORD')
+          if any(not c.isalnum() for c in u.unquote(pwd)):
+              problemas.append('la contraseña tiene símbolos: usá sólo letras y números')
+          if 'pooler.supabase.com' in host and '.' not in user:
+              problemas.append('con el Session pooler el usuario tiene que ser postgres.<id del proyecto>')
+          if raw.count('@') > 1:
+              problemas.append('hay más de una @ (¿la contraseña tiene @?)')
+          if problemas:
+              sys.exit('Revisá SUPABASE_DB_URL: ' + '; '.join(problemas))
+          print('La forma de la dirección está bien.')
+          PY
+
       - name: Copia de la base
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
