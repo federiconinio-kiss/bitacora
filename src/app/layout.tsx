@@ -2,11 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Bitácora — rutinas y progreso',
+  title: 'Entrena con Fede — rutinas y progreso',
   description: 'Tu planilla de entrenamiento: rutina, series, pesos y progreso.',
   manifest: '/manifest.webmanifest',
   icons: { icon: '/icon.svg', apple: '/icon.svg' },
-  appleWebApp: { capable: true, title: 'Bitácora', statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: 'Entrena con Fede', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {

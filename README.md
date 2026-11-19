@@ -1,4 +1,4 @@
-# Bitácora — rutinas personalizadas y progreso
+# Entrena con Fede — rutinas personalizadas y progreso
 
 Web app para profe y alumnos. Funciona en el celular (se puede instalar como app desde el navegador) y en la compu. La estética es la de una planilla de papel: renglones, tinta azul, sellos y post-its.
 
@@ -57,8 +57,8 @@ Web app para profe y alumnos. Funciona en el celular (se puede instalar como app
 4. **Authentication → Sign In / Providers → Email**: desactivá *Allow new users to sign up*. Así sólo entran los alumnos que das de alta vos.
 5. **Authentication → Users → Add user**: creá tu usuario de profe con tu email y contraseña. **El primer usuario que se crea queda como profe.**
 6. **Authentication → URL Configuration**:
-   - *Site URL*: la URL de la app, por ejemplo `https://bitacora.vercel.app`.
-   - *Redirect URLs*: agregá `https://bitacora.vercel.app/**`.
+   - *Site URL*: la URL de la app, por ejemplo `https://entrena-con-fede.vercel.app`.
+   - *Redirect URLs*: agregá `https://entrena-con-fede.vercel.app/**`.
 7. **Mails (importante):** el servidor de mail que trae Supabase de fábrica manda muy pocos mails por hora y sólo es para pruebas. Para las invitaciones y la recuperación de contraseña configurá un SMTP propio en **Authentication → Emails → SMTP Settings**. Por ejemplo [Resend](https://resend.com), que es gratis hasta 3.000 mails por mes.
    - Mientras tanto podés dar de alta a los alumnos con **contraseña temporal**, que no necesita mail.
    - Opcional: en **Authentication → Emails → Templates** podés traducir los textos de los mails al español.

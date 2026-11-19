@@ -1,5 +1,5 @@
 -- =====================================================================
--- Bitácora — esquema de base de datos (Supabase / Postgres)
+-- Entrena con Fede — esquema de base de datos (Supabase / Postgres)
 -- Ejecutar completo en Supabase → SQL Editor (o `supabase db push`).
 -- =====================================================================
 

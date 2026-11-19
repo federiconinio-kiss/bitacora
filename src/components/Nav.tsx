@@ -29,7 +29,7 @@ export function StudentNav({ name }: { name: string }) {
     <>
       <header className="topbar">
         <div className="topbar-in" style={{ maxWidth: 760 }}>
-          <Link href="/alumno" className="brand"><IconLogo /> Bitácora</Link>
+          <Link href="/alumno" className="brand"><IconLogo /> Entrena con Fede</Link>
           <span className="grow" />
           <span className="type hide-mobile">{name}</span>
           <Logout />
@@ -58,7 +58,7 @@ export function TrainerNav({ pending }: { pending: number }) {
     <>
       <header className="topbar">
         <div className="topbar-in">
-          <Link href="/profe" className="brand"><IconLogo /> Bitácora <span className="tag ink" style={{ fontSize: '.6rem' }}>profe</span></Link>
+          <Link href="/profe" className="brand"><IconLogo /> Entrena con Fede <span className="tag ink" style={{ fontSize: '.6rem' }}>profe</span></Link>
           <nav className="topnav" aria-label="Secciones">
             {items.map((it) => (
               <Link key={it.href} href={it.href} className={isOn(it) ? 'on' : ''}>

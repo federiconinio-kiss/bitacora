@@ -4,7 +4,7 @@ export default function AuthCard({ title, subtitle, children }: { title: string;
   return (
     <main className="shell" style={{ maxWidth: 460, paddingTop: 'max(6vh, 24px)' }}>
       <div className="row" style={{ justifyContent: 'center', marginBottom: 26 }}>
-        <span className="brand" style={{ fontSize: '2.6rem' }}><IconLogo size={42} /> Bitácora</span>
+        <span className="brand" style={{ fontSize: 'clamp(2rem, 9vw, 2.6rem)' }}><IconLogo size={42} /> Entrena con Fede</span>
       </div>
       <div className="sheet tilt-l">
         <span className="tape" />

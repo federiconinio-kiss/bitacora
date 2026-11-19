@@ -1,5 +1,5 @@
 /* =====================================================================
-   Bitácora — planilla de papel, en digital.
+   Entrena con Fede — planilla de papel, en digital.
    ===================================================================== */
 :root {
   --desk: #e7e1d3;
@@ -158,7 +158,7 @@ h3.h-hand { font-size: 1.6rem; }
 /* ---------- Navegación ---------- */
 .topbar { position: sticky; top: 0; z-index: 30; background: rgba(231, 225, 211, .92); backdrop-filter: blur(6px); border-bottom: 1.5px dashed var(--line); }
 .topbar-in { max-width: 1240px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 14px; align-items: center; }
-.brand { font-family: var(--f-hand); font-weight: 700; font-size: 1.9rem; color: var(--graphite); text-decoration: none; line-height: 1; display: inline-flex; align-items: center; gap: 8px; }
+.brand { font-family: var(--f-hand); font-weight: 700; font-size: clamp(1.5rem, 6.5vw, 1.9rem); white-space: nowrap; color: var(--graphite); text-decoration: none; line-height: 1; display: inline-flex; align-items: center; gap: 8px; }
 .brand svg { width: 30px; height: 30px; }
 .topnav { display: none; gap: 4px; }
 .topnav a { text-decoration: none; color: var(--graphite-2); padding: 6px 12px; border-radius: 8px; font-size: 1.05rem; }
