@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
 import { createClient } from '@supabase/supabase-js';
+import { supabaseKey, supabaseUrl } from '@/lib/supabase/env';
 
 export default function RecoverPage() {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ export default function RecoverPage() {
     setError(null);
     const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     // Flujo "implicit" (sin PKCE): el link del mail funciona aunque se abra en otro dispositivo.
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    const sb = createClient(supabaseUrl(), supabaseKey(), {
       auth: { flowType: 'implicit', persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
     const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
