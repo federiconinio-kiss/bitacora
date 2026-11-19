@@ -204,3 +204,40 @@ export interface DietItem { id: string; meal_id: string; food_id: string; grams:
 export interface FullDietPlan extends DietPlan {
   days: (DietDay & { meals: (DietMeal & { items: (DietItem & { food: Food })[] })[] })[];
 }
+
+export interface FoodLog {
+  id: string;
+  student_id: string;
+  logged_on: string;
+  logged_at: string | null;
+  meal_label: string | null;
+  plan_meal_id: string | null;
+  food_id: string | null;
+  grams: number | null;
+  name: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  created_at: string;
+}
+
+export interface DietCheckin {
+  id: string;
+  student_id: string;
+  day: string;
+  plan_id: string | null;
+  complied: 'si' | 'parcial' | 'no';
+  comment: string;
+  target_kcal: number | null;
+  target_protein: number | null;
+  target_carbs: number | null;
+  target_fat: number | null;
+  total_kcal: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fat: number;
+  trainer_seen_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

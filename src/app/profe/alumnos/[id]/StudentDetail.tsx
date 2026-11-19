@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { DietPlan, FullRoutine, Measurement, Profile, SetLog, TrainingInfo } from '@/lib/types';
+import type { DietCheckin, DietPlan, FoodLog, FullRoutine, Measurement, Profile, SetLog, TrainingInfo } from '@/lib/types';
+import NutritionHistory from './NutritionHistory';
 import { GOALS } from '@/lib/nutrition';
 import TrainingInfoForm, { levelLabel } from '@/components/LevelPicker';
 import { supabaseBrowser } from '@/lib/supabase/client';
@@ -14,8 +15,8 @@ import { deleteStudent, sendAccessEmail, setStudentActive, setTempPassword } fro
 
 type Tab = 'rutinas' | 'historial' | 'nutricion' | 'datos';
 
-export default function StudentDetail({ student, routines, logs, measurements, initialTab, trainingInfo, diets }: {
-  student: Profile; routines: FullRoutine[]; logs: SetLog[]; measurements: Measurement[]; initialTab: Tab; trainingInfo: TrainingInfo | null; diets: DietPlan[];
+export default function StudentDetail({ student, routines, logs, measurements, initialTab, trainingInfo, diets, foodLogs, checkins }: {
+  student: Profile; routines: FullRoutine[]; logs: SetLog[]; measurements: Measurement[]; initialTab: Tab; trainingInfo: TrainingInfo | null; diets: DietPlan[]; foodLogs: FoodLog[]; checkins: DietCheckin[];
 }) {
   const [level, setLevel] = useState(trainingInfo?.level ?? null);
   const router = useRouter();
@@ -161,6 +162,7 @@ export default function StudentDetail({ student, routines, logs, measurements, i
               </article>
             ))}
           </div>
+          <NutritionHistory logs={foodLogs} checkins={checkins} />
         </div>
       )}
 

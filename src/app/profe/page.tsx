@@ -3,13 +3,16 @@ import { requireUser } from '@/lib/auth';
 import type { Profile, ProgressionRequest } from '@/lib/types';
 import { daysBetween, fmtDate, todayISO } from '@/lib/utils';
 import ProgressionInbox, { type InboxItem } from './ProgressionInbox';
+import NutritionInbox, { type CheckinItem } from './NutritionInbox';
+import type { DietCheckin } from '@/lib/types';
 
 export default async function TrainerHome() {
   const { sb, me } = await requireUser('trainer');
-  const [{ data: reqs }, { data: students }, { data: recentResolved }] = await Promise.all([
+  const [{ data: reqs }, { data: students }, { data: recentResolved }, { data: checkins }] = await Promise.all([
     sb.from('progression_requests').select('*').eq('status', 'pending').order('created_at'),
     sb.from('profiles').select('*').eq('trainer_id', me.id).eq('active', true).order('full_name'),
     sb.from('progression_requests').select('*').neq('status', 'pending').order('resolved_at', { ascending: false }).limit(8),
+    sb.from('diet_checkins').select('*').is('trainer_seen_at', null).order('day', { ascending: false }).limit(40),
   ]);
   const pending = (reqs ?? []) as ProgressionRequest[];
   const resolved = (recentResolved ?? []) as ProgressionRequest[];
@@ -49,13 +52,14 @@ export default async function TrainerHome() {
       <div className="row between wrap">
         <div>
           <p className="type" style={{ margin: 0 }}>{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-          <h1 className="h-hand">Avisos de progresión</h1>
+          <h1 className="h-hand">Avisos</h1>
         </div>
         <Link className="btn primary" href="/profe/alumnos?nuevo=1">+ Nuevo alumno</Link>
       </div>
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <section className="stack">
+          <h2 className="h-hand">Subidas de carga</h2>
           {items.length ? (
             <ProgressionInbox items={items} />
           ) : (
@@ -68,6 +72,10 @@ export default async function TrainerHome() {
         </section>
 
         <aside className="stack-lg">
+          <section className="sheet plain">
+            <h2 className="h-hand" style={{ marginBottom: 8 }}>Nutrición: cierres del día</h2>
+            <NutritionInbox items={((checkins ?? []) as DietCheckin[]).map((c): CheckinItem => ({ ...c, studentName: byId.get(c.student_id)?.full_name || byId.get(c.student_id)?.email || 'Alumno' }))} />
+          </section>
           <section className="sheet plain">
             <h2 className="h-hand" style={{ marginBottom: 8 }}>Sin entrenar hace +7 días</h2>
             {inactive.length ? (

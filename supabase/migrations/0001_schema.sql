@@ -615,3 +615,82 @@ create policy diet_items_write on public.diet_meal_items for all to authenticate
 
 grant select, insert, update, delete on public.diet_plans, public.diet_days, public.diet_meals, public.diet_meal_items to authenticated;
 grant execute on all functions in schema public to authenticated, service_role;
+
+-- ---------------------------------------------------------------------
+-- Diario de comidas del alumno (con o sin plan)
+-- ---------------------------------------------------------------------
+create table if not exists public.food_logs (
+  id            uuid primary key default gen_random_uuid(),
+  student_id    uuid not null references public.profiles(id) on delete cascade default auth.uid(),
+  logged_on     date not null default current_date,
+  logged_at     time,                       -- hora aproximada
+  meal_label    text,                       -- "Desayuno", "Comida 2", etc.
+  plan_meal_id  uuid references public.diet_meals(id) on delete set null, -- si viene de "La comí como estaba"
+  food_id       uuid references public.foods(id) on delete set null,
+  grams         numeric(6,1),
+  name          text not null,              -- nombre del alimento o del agregado rápido
+  kcal          numeric(7,1) not null default 0 check (kcal >= 0),
+  protein       numeric(6,1) not null default 0 check (protein >= 0),
+  carbs         numeric(6,1) not null default 0 check (carbs >= 0),
+  fat           numeric(6,1) not null default 0 check (fat >= 0),
+  created_at    timestamptz not null default now()
+);
+create index if not exists food_logs_student_day_idx on public.food_logs(student_id, logged_on);
+alter table public.food_logs enable row level security;
+drop policy if exists food_logs_student on public.food_logs;
+create policy food_logs_student on public.food_logs for all to authenticated
+  using (student_id = auth.uid()) with check (student_id = auth.uid());
+drop policy if exists food_logs_trainer on public.food_logs;
+create policy food_logs_trainer on public.food_logs for select to authenticated
+  using (public.is_trainer_of(student_id));
+grant select, insert, update, delete on public.food_logs to authenticated;
+
+-- ---------------------------------------------------------------------
+-- Cierre del día: ¿cumplió el plan? + desvío calculado (le llega al profe)
+-- ---------------------------------------------------------------------
+create table if not exists public.diet_checkins (
+  id              uuid primary key default gen_random_uuid(),
+  student_id      uuid not null references public.profiles(id) on delete cascade default auth.uid(),
+  day             date not null,
+  plan_id         uuid references public.diet_plans(id) on delete set null,
+  complied        text not null check (complied in ('si','parcial','no')),
+  comment         text not null default '',
+  target_kcal     int, target_protein int, target_carbs int, target_fat int,
+  total_kcal      numeric(7,1) not null default 0,
+  total_protein   numeric(6,1) not null default 0,
+  total_carbs     numeric(6,1) not null default 0,
+  total_fat       numeric(6,1) not null default 0,
+  trainer_seen_at timestamptz,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  unique (student_id, day)
+);
+create index if not exists diet_checkins_student_idx on public.diet_checkins(student_id, day desc);
+alter table public.diet_checkins enable row level security;
+drop policy if exists checkins_student on public.diet_checkins;
+create policy checkins_student on public.diet_checkins for all to authenticated
+  using (student_id = auth.uid()) with check (student_id = auth.uid());
+drop policy if exists checkins_trainer on public.diet_checkins;
+create policy checkins_trainer on public.diet_checkins for select to authenticated
+  using (public.is_trainer_of(student_id));
+grant select, insert, update, delete on public.diet_checkins to authenticated;
+
+-- Si el alumno vuelve a cerrar el día (cambió algo), el profe lo vuelve a ver como nuevo.
+create or replace function public.checkin_touch()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at := now();
+  if tg_op = 'UPDATE' and auth.uid() = new.student_id then new.trainer_seen_at := null; end if;
+  return new;
+end $$;
+drop trigger if exists diet_checkins_touch on public.diet_checkins;
+create trigger diet_checkins_touch before update on public.diet_checkins
+  for each row execute function public.checkin_touch();
+
+-- El profe marca como vistos los cierres de sus alumnos.
+create or replace function public.mark_checkins_seen(p_ids uuid[])
+returns void language sql security definer set search_path = public as $$
+  update public.diet_checkins set trainer_seen_at = now()
+   where id = any(p_ids) and public.is_trainer_of(student_id);
+$$;
+grant execute on function public.mark_checkins_seen(uuid[]) to authenticated;

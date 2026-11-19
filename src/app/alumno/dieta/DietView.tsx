@@ -16,10 +16,7 @@ export default function DietView({ plan, todayWeekday, disclaimer }: { plan: Ful
 
   return (
     <div className="stack-lg">
-      <div>
-        <p className="type" style={{ margin: 0 }}>{plan.name}</p>
-        <h1 className="h-hand">Mi dieta</h1>
-      </div>
+      <p className="type" style={{ margin: 0 }}>{plan.name}</p>
 
       <section className="sheet tilt-l">
         <span className="tape" />

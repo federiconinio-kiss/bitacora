@@ -122,6 +122,11 @@ En el perfil de cada alumno, pestaña **Nutrición**:
 
 El alumno ve su plan en **Dieta**, con su objetivo de calorías y macros del día, el detalle de cada comida y un aviso de que no reemplaza la consulta con un nutricionista.
 
+**Diario de comidas** (todos los alumnos, tengan plan o no): en **Dieta → Diario de comidas** cargan día a día lo que comen y a qué hora, buscando en la base de alimentos o con un **agregado rápido** de calorías y macros. Un contador muestra lo comido contra el objetivo.
+- Con plan, cada comida del día tiene **"La comí como estaba"** (la carga de un toque) o **"Comí otra cosa"**.
+- Al **cerrar el día** el alumno indica si cumplió el plan (sí, en parte o no) y deja un comentario. La app calcula el **desvío** (kcal y macros) y el resumen le llega al profe en **Avisos**.
+- En la pestaña **Nutrición** de cada alumno, el profe ve el cumplimiento de los últimos 21 días y el detalle de lo que comió cada día.
+
 La base trae unos 180 alimentos comunes en Argentina, con valores aproximados cada 100 g tomados de tablas de referencia (USDA y ARGENFOODS). El profe puede agregar o corregir alimentos en **Alimentos**.
 
 ### Carga inicial opcional
