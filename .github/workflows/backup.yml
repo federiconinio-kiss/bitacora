@@ -69,10 +69,19 @@ jobs:
 
       # Una consulta liviana para que Supabase no pause el proyecto por inactividad.
       - name: Mantener activo el proyecto
-        if: ${{ env.SUPABASE_URL != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::warning::Faltan los secrets SUPABASE_URL o SUPABASE_ANON_KEY: no se pudo mantener activo el proyecto."
+            exit 0
+          fi
+          # Sólo el origen (https://xxxx.supabase.co), aunque el secret tenga /rest/v1/ u otra ruta al final.
+          BASE=$(printf '%s' "$SUPABASE_URL" | tr -d '[:space:]' | sed -E 's#^(https?://[^/]+).*#\1#')
           # Estado del servicio de login: responde sin sesión (las tablas de la app no, por seguridad).
-          curl -fsS -o /dev/null "${SUPABASE_URL%/}/auth/v1/health" -H "apikey: $SUPABASE_ANON_KEY" && echo "Supabase respondió OK"
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' "$BASE/auth/v1/health" -H "apikey: $(printf '%s' "$SUPABASE_ANON_KEY" | tr -d '[:space:]')")
+          echo "Supabase respondió: $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::warning::Supabase respondió $CODE. Revisá que SUPABASE_URL sea https://<id>.supabase.co y SUPABASE_ANON_KEY la clave publishable."
+          fi
