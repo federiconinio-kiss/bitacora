@@ -33,6 +33,8 @@ jobs:
           if not raw:
               sys.exit('Falta el secret SUPABASE_DB_URL.')
           problemas = []
+          if '[' in raw or ']' in raw:
+              sys.exit('Revisá SUPABASE_DB_URL: tiene corchetes [ ]. Sacalos: la contraseña va sola entre ":" y "@".')
           if raw != raw.strip():
               problemas.append('la dirección tiene espacios o saltos de línea al principio o al final')
           p = u.urlsplit(raw.strip())
