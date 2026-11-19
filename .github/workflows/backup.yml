@@ -74,4 +74,5 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl -fsS -o /dev/null "$SUPABASE_URL/rest/v1/exercises?select=id&limit=1" -H "apikey: $SUPABASE_ANON_KEY" && echo "Supabase respondió OK"
+          # Estado del servicio de login: responde sin sesión (las tablas de la app no, por seguridad).
+          curl -fsS -o /dev/null "${SUPABASE_URL%/}/auth/v1/health" -H "apikey: $SUPABASE_ANON_KEY" && echo "Supabase respondió OK"
