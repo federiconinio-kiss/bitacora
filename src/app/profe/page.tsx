@@ -4,6 +4,7 @@ import type { Profile, ProgressionRequest } from '@/lib/types';
 import { daysBetween, fmtDate, todayISO } from '@/lib/utils';
 import ProgressionInbox, { type InboxItem } from './ProgressionInbox';
 import NutritionInbox, { type CheckinItem } from './NutritionInbox';
+import PushToggle from '@/components/PushToggle';
 import type { DietCheckin } from '@/lib/types';
 
 export default async function TrainerHome() {
@@ -56,6 +57,8 @@ export default async function TrainerHome() {
         </div>
         <Link className="btn primary" href="/profe/alumnos?nuevo=1">+ Nuevo alumno</Link>
       </div>
+
+      <PushToggle compact />
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <section className="stack">

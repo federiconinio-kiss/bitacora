@@ -2,6 +2,7 @@ import { requireUser } from '@/lib/auth';
 import type { Measurement } from '@/lib/types';
 import ProfileForm from './ProfileForm';
 import MeasurementForm from './MeasurementForm';
+import PushToggle from '@/components/PushToggle';
 
 export default async function ProfilePage() {
   const { sb, me } = await requireUser('student');
@@ -9,6 +10,7 @@ export default async function ProfilePage() {
   return (
     <div className="stack-lg">
       <h1 className="h-hand">Mi perfil</h1>
+      <section className="sheet plain"><PushToggle /></section>
       <ProfileForm me={me} />
       <MeasurementForm studentId={me.id} recent={(data ?? []) as Measurement[]} />
     </div>

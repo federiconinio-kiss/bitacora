@@ -7,6 +7,7 @@ import { COMPLIED, dayForWeekday, dayTarget, deviationText, logTotals, mealTotal
 import { portion, r1, type Macros } from '@/lib/nutrition';
 import { fmtDate, isoWeekday, num, todayISO } from '@/lib/utils';
 import MacroCounter from '@/components/MacroCounter';
+import { notify } from '@/lib/notify';
 import Modal from '@/components/Modal';
 import { FoodMacrosLine, searchFoods } from '@/components/FoodPicker';
 import { IconBack, IconCheck, IconPlus, IconSearch, IconTrash } from '@/components/Icons';
@@ -219,6 +220,7 @@ function CloseDay({ studentId, date, planId, total, target, checkin, onSaved }: 
     setBusy(false);
     if (error) return setErr(error.message);
     setErr(null);
+    notify('checkin', (data as DietCheckin).id);
     onSaved(data as DietCheckin);
   }
 

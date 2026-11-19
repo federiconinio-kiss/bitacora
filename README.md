@@ -79,6 +79,37 @@ Abrí la URL en el celular:
 - iPhone: Safari → Compartir → *Agregar a pantalla de inicio*.
 - Android: Chrome → menú → *Instalar app*.
 
+## Notificaciones
+
+Los alumnos y el profe activan las notificaciones desde la app (botón **Activar**, en el inicio o en el perfil). No hace falta configurar nada: las claves se generan solas la primera vez.
+- **Al alumno le llega:** rutina nueva, plan de alimentación nuevo, subida de carga aprobada o no.
+- **Al profe le llega:** un alumno llegó al tope del rango, o un alumno cerró el día de dieta.
+- **En iPhone** primero hay que agregar la app a la pantalla de inicio (Safari → Compartir → *Agregar a inicio*) y abrirla desde ahí (iOS 16.4 o posterior).
+
+## Sin señal en el gimnasio
+
+Si se corta la conexión mientras el alumno carga series, cada serie queda guardada en el teléfono y se sube sola cuando vuelve la señal (o con *Reintentar ahora*). Para que funcione, la planilla del día tiene que estar abierta antes de perder la señal.
+
+## Backups automáticos
+
+Todos los días a las 03:17 (hora argentina), GitHub Actions hace una copia de la base y la guarda 30 días en la pestaña **Actions** del repositorio. Aprovecha esa consulta diaria para que Supabase no pause el proyecto por inactividad.
+
+**Configurarlo (una sola vez).** En GitHub, *Settings → Secrets and variables → Actions → New repository secret*:
+- `SUPABASE_DB_URL`: en Supabase, botón **Connect** → *Session pooler* → copiá la URI y reemplazá `[YOUR-PASSWORD]` por la contraseña de la base. Si la contraseña tiene símbolos, cambiala por una de sólo letras y números en *Project Settings → Database*.
+- `SUPABASE_URL` y `SUPABASE_ANON_KEY`: los mismos valores que cargaste en Vercel.
+
+Para probarlo, en la pestaña **Actions** elegí *Backup diario de la base* → **Run workflow**. Si una copia falla, GitHub te avisa por mail.
+
+**Descargar una copia:** pestaña **Actions** → la ejecución del día → *Artifacts*.
+
+**Restaurar** (en un proyecto de Supabase nuevo y vacío, con `psql` y `pg_restore` instalados):
+```bash
+gunzip -c users-AAAA-MM-DD.sql.gz | psql "$NUEVA_DB_URL"
+pg_restore --no-owner --no-privileges -d "$NUEVA_DB_URL" app-AAAA-MM-DD.dump
+psql "$NUEVA_DB_URL" -f supabase/migrations/0001_schema.sql
+```
+El último paso vuelve a crear lo que vive fuera de las tablas de la app (por ejemplo, el alta automática de perfiles). Es seguro correrlo más de una vez.
+
 ## Desarrollo local
 
 ```bash

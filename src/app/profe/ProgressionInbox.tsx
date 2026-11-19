@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { fmtDate, fmtKg, num } from '@/lib/utils';
+import { notify } from '@/lib/notify';
 
 export type InboxItem = {
   id: string; studentId: string; studentName: string; exercise: string; group: string; scheme: string;
@@ -26,6 +27,7 @@ function Card({ it, onDone }: { it: InboxItem; onDone: (id: string, msg: string)
     const { error } = await supabaseBrowser().rpc('resolve_progression', { p_request: it.id, p_approve: approve, p_increment: approve ? incN : null, p_note: note });
     setBusy(false);
     if (error) return setErr(error.message);
+    notify('progression_resolved', it.id);
     onDone(it.id, approve ? `Aprobado: ${it.studentName} pasa a ${fmtKg(base + (incN ?? 0))} en ${it.exercise}.` : `Se mantiene la carga de ${it.studentName}.`);
   }
 

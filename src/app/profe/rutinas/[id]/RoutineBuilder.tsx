@@ -10,6 +10,7 @@ import VideoButton from '@/components/VideoButton';
 import { IconBack, IconDown, IconPlus, IconSwap, IconTrash, IconUp, IconX } from '@/components/Icons';
 import type { Profile, RoutineReview, TrainingInfo } from '@/lib/types';
 import AiReview from './AiReview';
+import { notify } from '@/lib/notify';
 
 type Day = FullRoutine['days'][number];
 type Rex = Day['exercises'][number];
@@ -54,6 +55,7 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
       if (fail(error)) return;
     }
     await saveRoutine({ published: p });
+    if (p) notify('routine_published', r.id);
     ok(p ? '¡Publicada! El alumno ya la ve.' : 'Pasó a borrador');
     router.refresh();
   }

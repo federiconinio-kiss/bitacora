@@ -1,0 +1,46 @@
+name: Backup diario de la base
+
+on:
+  schedule:
+    - cron: '17 6 * * *'   # todos los días 03:17 (hora de Argentina)
+  workflow_dispatch:        # también se puede correr a mano desde la pestaña Actions
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar pg_dump 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Copia de la base
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PG_DUMP: /usr/lib/postgresql/17/bin/pg_dump
+        run: scripts/backup.sh backups
+
+      - name: Guardar la copia (30 días)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_number }}
+          path: backups/
+          retention-days: 30
+
+      # Una consulta liviana para que Supabase no pause el proyecto por inactividad.
+      - name: Mantener activo el proyecto
+        if: ${{ env.SUPABASE_URL != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          curl -fsS -o /dev/null "$SUPABASE_URL/rest/v1/exercises?select=id&limit=1" -H "apikey: $SUPABASE_ANON_KEY" && echo "Supabase respondió OK"

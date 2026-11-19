@@ -4,6 +4,7 @@ import { getActiveRoutine } from '@/lib/data';
 import type { Measurement, ProgressionRequest, SetLog } from '@/lib/types';
 import { DAYS, daysBetween, fmtDate, fmtKg, isoWeekday, todayISO, weekStart } from '@/lib/utils';
 import ApprovedCelebration from './ApprovedCelebration';
+import PushToggle from '@/components/PushToggle';
 
 export default async function StudentHome() {
   const { sb, me } = await requireUser('student');
@@ -50,6 +51,8 @@ export default async function StudentHome() {
         <p className="type" style={{ margin: 0 }}>{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         <h1 className="h-hand">¡Hola{firstName ? `, ${firstName}` : ''}!</h1>
       </div>
+
+      <PushToggle compact />
 
       <section className="sheet tilt-l">
         <span className="tape" />

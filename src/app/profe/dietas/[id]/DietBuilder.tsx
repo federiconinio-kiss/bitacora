@@ -10,6 +10,7 @@ import {
   type Activity, type GoalType, type Method, type Sex,
 } from '@/lib/nutrition';
 import MacroCounter from '@/components/MacroCounter';
+import { notify } from '@/lib/notify';
 import { DISCLAIMER, dayTarget, dayTotals, mealTotals } from '@/lib/diet';
 import FoodPicker from '@/components/FoodPicker';
 import { saveTrainingInfo } from '@/components/LevelPicker';
@@ -216,6 +217,7 @@ export default function DietBuilder({ initial, student, foods: initialFoods, inf
       if (fail(error)) return;
     }
     await savePlan({ published: on });
+    if (on) notify('diet_published', p.id);
     ok(on ? '¡Publicado! El alumno ya lo ve.' : 'Pasó a borrador');
     router.refresh();
   }
