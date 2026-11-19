@@ -45,7 +45,9 @@ jobs:
           if scheme not in ('postgres', 'postgresql'): problemas.append('no empieza con postgresql://')
           if '[' in rest or ']' in rest: problemas.append('hay corchetes [ ] en la parte del servidor (después de la @)')
           if '[' in pwd or ']' in pwd or 'YOUR-PASSWORD' in pwd: problemas.append('la contraseña tiene corchetes o dice YOUR-PASSWORD')
-          if any(not c.isalnum() for c in pwd): problemas.append('la contraseña tiene símbolos o espacios: usá sólo letras y números')
+          # Estos caracteres rompen la dirección (salvo que estén codificados como %XX). Letras, números y - _ . ~ funcionan bien.
+          malos = sorted({c for c in re.sub(r'%[0-9A-Fa-f]{2}', '', pwd) if c in ' @:/?#[]%' or ord(c) < 33})
+          if malos: problemas.append('la contraseña tiene caracteres que rompen la dirección: ' + ' '.join('espacio' if c == ' ' else repr(c) for c in malos) + '. Cambiá la contraseña por una de letras y números')
           if 'pooler.supabase.com' in rest and '.' not in user: problemas.append('con el Session pooler el usuario tiene que ser postgres.<id del proyecto>')
           if problemas:
               sys.exit('Revisá SUPABASE_DB_URL: ' + '; '.join(problemas))
