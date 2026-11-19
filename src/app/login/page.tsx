@@ -21,7 +21,14 @@ function LoginForm() {
     setError(null);
     const { error } = await supabaseBrowser().auth.signInWithPassword({ email: email.trim(), password });
     if (error) {
-      setError(error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : error.message);
+      const m = error.message;
+      setError(
+        /invalid login credentials/i.test(m) ? 'Email o contraseña incorrectos.'
+        : /email not confirmed/i.test(m) ? 'Tu email todavía no está confirmado. Pedile a tu profe que revise tu acceso.'
+        : /invalid api key|no api key|jwt/i.test(m) ? `La app no está bien conectada a la base de datos (${m}). Revisá las claves en Vercel.`
+        : /fetch|network/i.test(m) ? `No se pudo conectar con la base de datos (${m}). Revisá la URL de Supabase en Vercel.`
+        : m,
+      );
       setBusy(false);
       return;
     }
