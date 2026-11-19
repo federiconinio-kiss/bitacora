@@ -286,3 +286,38 @@ h3.h-hand { font-size: 1.6rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media print { .topbar, .tabbar { display: none; } body { background: #fff; } .sheet { box-shadow: none; } }
+
+/* ---------- Contador de calorías y macros ---------- */
+.macro-counter { display: flex; flex-direction: column; gap: 6px; }
+.macro-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 18px; }
+.macro-counter.compact .macro-rows { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 10px; }
+.macro-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.macro-label { font-family: var(--f-type); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--graphite-2); }
+.macro-val { font-family: var(--f-hand); font-size: 1.25rem; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.macro-counter.compact .macro-val { font-size: 1.05rem; }
+.macro-track { height: 9px; border: 1.5px solid var(--graphite-3); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.macro-track i { display: block; height: 100%; background: var(--ink-soft); transition: width .25s ease; }
+.macro-row.ok .macro-track i { background: var(--green); }
+.macro-row.over .macro-track i { background: var(--red); }
+.macro-state { font-family: var(--f-type); font-size: .68rem; color: var(--graphite-3); min-height: 1em; }
+.macro-row.ok .macro-state { color: var(--green); }
+.macro-row.over .macro-state { color: var(--red); }
+.macro-counter.compact .macro-state { display: none; }
+.sticky-counter { position: sticky; bottom: 70px; z-index: 20; background: rgba(252, 249, 241, .97); border: 2px solid var(--graphite); border-radius: 10px; padding: 8px 12px; box-shadow: 0 8px 18px -10px rgba(0,0,0,.4); }
+@media (min-width: 900px) { .sticky-counter { bottom: 12px; } }
+@media (max-width: 520px) { .macro-counter.compact .macro-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- Tabla de comidas ---------- */
+.food-table { width: 100%; border-collapse: collapse; }
+.food-table th { font-family: var(--f-type); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: var(--graphite-2); font-weight: 400; text-align: right; padding: 2px 6px; border-bottom: 1.5px solid var(--graphite); white-space: nowrap; }
+.food-table th:first-child { text-align: left; }
+.food-table td { border-bottom: 1px solid var(--rule); padding: 6px; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; }
+.food-table td:first-child { text-align: left; }
+.food-table td.num { font-family: var(--f-hand); font-size: 1.2rem; color: var(--ink); white-space: nowrap; }
+.food-table tfoot td { border-bottom: 0; border-top: 1.5px solid var(--graphite); font-family: var(--f-type); font-size: .8rem; color: var(--graphite); }
+.grams-in { width: 74px; text-align: right; font-family: var(--f-hand); font-size: 1.3rem; color: var(--ink); border: 0; border-bottom: 1.5px solid var(--graphite-3); background: transparent; padding: 2px 4px; }
+.grams-in:focus { outline: none; background: rgba(251, 233, 122, .4); border-bottom-color: var(--ink); }
+.weekday-toggle { width: 40px; height: 36px; border-radius: 8px; border: 1.5px solid var(--graphite-3); background: var(--paper); cursor: pointer; font-family: var(--f-type); font-size: .78rem; }
+.weekday-toggle.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.weekday-toggle:disabled { opacity: .35; cursor: not-allowed; }
+.disclaimer { font-size: .9rem; color: var(--graphite-2); border: 1.5px dashed var(--graphite-3); border-radius: 8px; padding: 10px 12px; }

@@ -53,7 +53,7 @@ Web app para profe y alumnos. Funciona en el celular (se puede instalar como app
 ### 1. Base de datos (Supabase)
 1. Creá un proyecto en <https://supabase.com>.
 2. **SQL Editor → New query**: pegá y ejecutá todo `supabase/migrations/0001_schema.sql`.
-3. Ejecutá también `supabase/seed_exercises.sql` (es el catálogo de ejercicios).
+3. Ejecutá también `supabase/seed_exercises.sql` (catálogo de ejercicios) y `supabase/seed_foods.sql` (base de alimentos).
 4. **Authentication → Sign In / Providers → Email**: desactivá *Allow new users to sign up*. Así sólo entran los alumnos que das de alta vos.
 5. **Authentication → Users → Add user**: creá tu usuario de profe con tu email y contraseña. **El primer usuario que se crea queda como profe.**
 6. **Authentication → URL Configuration**:
@@ -113,6 +113,16 @@ Antes de publicar una rutina, el profe puede pedirle a Claude (IA de Anthropic) 
 2. En Vercel, en *Settings → Environment Variables*, agregá `ANTHROPIC_API_KEY` con esa clave y hacé *Redeploy*.
 
 Cada revisión cuesta aproximadamente USD 0,05–0,15 y tarda entre 1 y 2 minutos.
+
+### Plan de alimentación
+En el perfil de cada alumno, pestaña **Nutrición**:
+1. **Gasto calórico:** metabolismo basal con Mifflin-St Jeor (peso, altura, edad, sexo), Katch-McArdle o Cunningham (peso y % de grasa), multiplicado por el factor de actividad. El peso y el % de grasa se toman de la última medición del alumno.
+2. **Objetivo:** baja de grasa, recomposición, mantenimiento o aumento de masa, con ajuste en % sobre el gasto. Proteína y grasas en g/kg; los carbohidratos completan las calorías. Avisa si el objetivo queda por debajo del metabolismo basal o de un mínimo razonable.
+3. **Comidas por día tipo** (por ejemplo, día de entrenamiento y día de descanso, con los días de la semana de cada uno). Los alimentos se buscan en la base y un contador muestra cuánto del objetivo cubren.
+
+El alumno ve su plan en **Dieta**, con su objetivo de calorías y macros del día, el detalle de cada comida y un aviso de que no reemplaza la consulta con un nutricionista.
+
+La base trae unos 180 alimentos comunes en Argentina, con valores aproximados cada 100 g tomados de tablas de referencia (USDA y ARGENFOODS). El profe puede agregar o corregir alimentos en **Alimentos**.
 
 ### Carga inicial opcional
 Al armar la rutina, la carga (kg) de cada ejercicio es opcional. Si la dejás vacía, el alumno la define en su primera sesión: el peso más bajo que cargue ese día queda como su carga inicial. Mientras dure esa sesión la puede corregir; después ya no cambia. En el armador ves que la eligió el alumno. Si la modificás, pasa a ser tuya.

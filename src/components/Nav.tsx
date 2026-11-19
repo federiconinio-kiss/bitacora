@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IconBell, IconBook, IconChart, IconLogo, IconLogout, IconPlan, IconUser, IconUsers } from './Icons';
+import { IconApple, IconBell, IconBook, IconChart, IconLogo, IconLogout, IconPlan, IconUser, IconUsers } from './Icons';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: number; exact?: boolean };
 
@@ -22,6 +22,7 @@ export function StudentNav({ name }: { name: string }) {
   const isOn = useActive();
   const items: Item[] = [
     { href: '/alumno', label: 'Mi plan', icon: <IconPlan />, exact: true },
+    { href: '/alumno/dieta', label: 'Dieta', icon: <IconApple /> },
     { href: '/alumno/historial', label: 'Historial', icon: <IconChart /> },
     { href: '/alumno/perfil', label: 'Perfil', icon: <IconUser /> },
   ];
@@ -53,6 +54,7 @@ export function TrainerNav({ pending }: { pending: number }) {
     { href: '/profe', label: 'Avisos', icon: <IconBell />, badge: pending, exact: true },
     { href: '/profe/alumnos', label: 'Alumnos', icon: <IconUsers /> },
     { href: '/profe/ejercicios', label: 'Ejercicios', icon: <IconBook /> },
+    { href: '/profe/alimentos', label: 'Alimentos', icon: <IconApple /> },
   ];
   return (
     <>

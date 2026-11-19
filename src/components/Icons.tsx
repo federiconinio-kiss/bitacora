@@ -29,3 +29,4 @@ export const IconBack = (p: P) => (<svg {...base(p.size)}><path d="M15 5l-7 7 7 
 export const IconLogout = (p: P) => (<svg {...base(p.size)}><path d="M14 4.5H6.5v15H14M10 12h10M17 8.5l3.5 3.5-3.5 3.5" /></svg>);
 export const IconEdit = (p: P) => (<svg {...base(p.size)}><path d="M4.5 19.5l1-4.2L16 4.8a2 2 0 0 1 2.9 0l.3.3a2 2 0 0 1 0 2.9L8.7 18.5Z" /><path d="M14 7l3 3" /></svg>);
 export const IconTrophy = (p: P) => (<svg {...base(p.size)}><path d="M8 4h8v5a4 4 0 0 1-8 0Z" /><path d="M8 6H4.5c0 3 1.5 4.5 3.7 4.8M16 6h3.5c0 3-1.5 4.5-3.7 4.8M12 13v4M8.5 20.5h7M9.5 17h5" /></svg>);
+export const IconApple = (p: P) => (<svg {...base(p.size)}><path d="M12 7.5c-1.6-1.2-4.6-1.4-6 .8-1.6 2.5-.6 7.5 1.8 10.4 1.2 1.4 2.3 1.6 4.2.6 1.9 1 3 .8 4.2-.6 2.4-2.9 3.4-7.9 1.8-10.4-1.4-2.2-4.4-2-6-.8Z" /><path d="M12 7.5c0-2 .8-3.3 2.5-4" /></svg>);

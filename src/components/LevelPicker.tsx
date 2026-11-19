@@ -22,7 +22,7 @@ export function LevelChips({ value, onChange, disabled }: { value: Level | null;
   );
 }
 
-export async function saveTrainingInfo(studentId: string, fields: Partial<Pick<TrainingInfo, 'level' | 'notes'>>) {
+export async function saveTrainingInfo(studentId: string, fields: Partial<Pick<TrainingInfo, 'level' | 'notes' | 'sex' | 'height_cm' | 'activity'>>) {
   return supabaseBrowser()
     .from('student_training_info')
     .upsert({ student_id: studentId, ...fields, updated_at: new Date().toISOString() }, { onConflict: 'student_id' });

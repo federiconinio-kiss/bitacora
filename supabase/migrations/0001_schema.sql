@@ -466,3 +466,152 @@ create policy reviews_trainer on public.routine_reviews for all to authenticated
   using (public.can_write_routine(routine_id))
   with check (public.can_write_routine(routine_id) and trainer_id = auth.uid());
 grant select, insert, delete on public.routine_reviews to authenticated;
+
+-- =====================================================================
+-- NUTRICIÓN
+-- =====================================================================
+
+-- Datos para el cálculo de calorías (ficha privada del profe)
+alter table public.student_training_info
+  add column if not exists sex text check (sex in ('M','F')),
+  add column if not exists height_cm numeric(5,1) check (height_cm is null or height_cm between 100 and 250),
+  add column if not exists activity text check (activity in ('sedentario','ligero','moderado','activo','muy_activo'));
+
+-- Base de alimentos: valores cada 100 g (o 100 ml) y una porción casera opcional
+create table if not exists public.foods (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null unique,
+  category    text not null,
+  kcal        numeric(6,1) not null check (kcal >= 0),
+  protein     numeric(5,1) not null check (protein >= 0),
+  carbs       numeric(5,1) not null check (carbs >= 0),
+  fat         numeric(5,1) not null check (fat >= 0),
+  unit_name   text,                 -- p. ej. 'unidad', 'rebanada', 'taza'
+  unit_grams  numeric(6,1),         -- gramos que pesa esa porción
+  created_by  uuid references public.profiles(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  check ((unit_name is null) = (unit_grams is null))
+);
+create index if not exists foods_category_idx on public.foods(category);
+alter table public.foods enable row level security;
+drop policy if exists foods_select on public.foods;
+create policy foods_select on public.foods for select to authenticated using (true);
+drop policy if exists foods_write on public.foods;
+create policy foods_write on public.foods for all to authenticated
+  using (public.is_trainer()) with check (public.is_trainer());
+grant select, insert, update, delete on public.foods to authenticated;
+
+-- Plan de alimentación
+create table if not exists public.diet_plans (
+  id            uuid primary key default gen_random_uuid(),
+  student_id    uuid not null references public.profiles(id) on delete cascade,
+  trainer_id    uuid not null references public.profiles(id) on delete cascade default auth.uid(),
+  name          text not null default 'Plan de alimentación',
+  goal_type     text not null default 'mantenimiento'
+                  check (goal_type in ('baja_grasa','recomposicion','mantenimiento','aumento')),
+  explanation   text not null default '',   -- lo lee el alumno
+  -- Cálculo (foto de los datos usados)
+  method        text not null default 'mifflin' check (method in ('mifflin','katch','cunningham')),
+  weight_kg     numeric(5,1),
+  height_cm     numeric(5,1),
+  age           int,
+  sex           text check (sex in ('M','F')),
+  body_fat      numeric(4,1),
+  activity      text check (activity in ('sedentario','ligero','moderado','activo','muy_activo')),
+  bmr           int,
+  tdee          int,
+  adjust_pct    numeric(5,1) not null default 0,
+  protein_per_kg numeric(3,1) not null default 2.0,
+  fat_per_kg    numeric(3,1) not null default 0.8,
+  published     boolean not null default false,
+  start_date    date not null default current_date,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists diet_plans_student_idx on public.diet_plans(student_id);
+
+-- Días tipo (p. ej. entrenamiento / descanso), cada uno con su objetivo
+create table if not exists public.diet_days (
+  id            uuid primary key default gen_random_uuid(),
+  plan_id       uuid not null references public.diet_plans(id) on delete cascade,
+  title         text not null default 'Día',
+  weekdays      int[] not null default '{}',   -- 1 = lunes … 7 = domingo
+  position      int not null default 0,
+  target_kcal   int not null default 0,
+  target_protein int not null default 0,
+  target_carbs  int not null default 0,
+  target_fat    int not null default 0
+);
+create index if not exists diet_days_plan_idx on public.diet_days(plan_id);
+
+create table if not exists public.diet_meals (
+  id        uuid primary key default gen_random_uuid(),
+  day_id    uuid not null references public.diet_days(id) on delete cascade,
+  title     text not null default 'Comida',
+  time_hint text,
+  notes     text not null default '',
+  position  int not null default 0
+);
+create index if not exists diet_meals_day_idx on public.diet_meals(day_id);
+
+create table if not exists public.diet_meal_items (
+  id        uuid primary key default gen_random_uuid(),
+  meal_id   uuid not null references public.diet_meals(id) on delete cascade,
+  food_id   uuid not null references public.foods(id) on delete restrict,
+  grams     numeric(6,1) not null check (grams > 0),
+  position  int not null default 0
+);
+create index if not exists diet_items_meal_idx on public.diet_meal_items(meal_id);
+
+-- Permisos: el profe de ese alumno arma; el alumno ve sólo planes publicados
+create or replace function public.can_read_diet(p_plan uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.diet_plans p where p.id = p_plan
+                 and ((p.student_id = auth.uid() and p.published) or public.is_trainer_of(p.student_id)));
+$$;
+create or replace function public.can_write_diet(p_plan uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.diet_plans p where p.id = p_plan and public.is_trainer_of(p.student_id));
+$$;
+create or replace function public.diet_plan_of_meal(p_meal uuid)
+returns uuid language sql stable security definer set search_path = public as $$
+  select d.plan_id from public.diet_meals m join public.diet_days d on d.id = m.day_id where m.id = p_meal;
+$$;
+
+alter table public.diet_plans      enable row level security;
+alter table public.diet_days       enable row level security;
+alter table public.diet_meals      enable row level security;
+alter table public.diet_meal_items enable row level security;
+
+drop policy if exists diet_plans_trainer on public.diet_plans;
+create policy diet_plans_trainer on public.diet_plans for all to authenticated
+  using (public.is_trainer_of(student_id))
+  with check (public.is_trainer_of(student_id) and trainer_id = auth.uid());
+drop policy if exists diet_plans_student on public.diet_plans;
+create policy diet_plans_student on public.diet_plans for select to authenticated
+  using (student_id = auth.uid() and published);
+
+drop policy if exists diet_days_select on public.diet_days;
+create policy diet_days_select on public.diet_days for select to authenticated using (public.can_read_diet(plan_id));
+drop policy if exists diet_days_write on public.diet_days;
+create policy diet_days_write on public.diet_days for all to authenticated
+  using (public.can_write_diet(plan_id)) with check (public.can_write_diet(plan_id));
+
+drop policy if exists diet_meals_select on public.diet_meals;
+create policy diet_meals_select on public.diet_meals for select to authenticated
+  using (public.can_read_diet((select plan_id from public.diet_days d where d.id = day_id)));
+drop policy if exists diet_meals_write on public.diet_meals;
+create policy diet_meals_write on public.diet_meals for all to authenticated
+  using (public.can_write_diet((select plan_id from public.diet_days d where d.id = day_id)))
+  with check (public.can_write_diet((select plan_id from public.diet_days d where d.id = day_id)));
+
+drop policy if exists diet_items_select on public.diet_meal_items;
+create policy diet_items_select on public.diet_meal_items for select to authenticated
+  using (public.can_read_diet(public.diet_plan_of_meal(meal_id)));
+drop policy if exists diet_items_write on public.diet_meal_items;
+create policy diet_items_write on public.diet_meal_items for all to authenticated
+  using (public.can_write_diet(public.diet_plan_of_meal(meal_id)))
+  with check (public.can_write_diet(public.diet_plan_of_meal(meal_id)));
+
+grant select, insert, update, delete on public.diet_plans, public.diet_days, public.diet_meals, public.diet_meal_items to authenticated;
+grant execute on all functions in schema public to authenticated, service_role;

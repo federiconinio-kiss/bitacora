@@ -134,6 +134,9 @@ export interface TrainingInfo {
   student_id: string;
   level: Level | null;
   notes: string;
+  sex: 'M' | 'F' | null;
+  height_cm: number | null;
+  activity: import('./nutrition').Activity | null;
   updated_at: string;
 }
 
@@ -144,4 +147,60 @@ export interface RoutineReview {
   level: Level | null;
   result: import('./ai/review-types').Review;
   created_at: string;
+}
+
+// ------------------------------- Nutrición -------------------------------
+export interface Food {
+  id: string;
+  name: string;
+  category: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  unit_name: string | null;
+  unit_grams: number | null;
+}
+
+export interface DietPlan {
+  id: string;
+  student_id: string;
+  trainer_id: string;
+  name: string;
+  goal_type: import('./nutrition').GoalType;
+  explanation: string;
+  method: import('./nutrition').Method;
+  weight_kg: number | null;
+  height_cm: number | null;
+  age: number | null;
+  sex: import('./nutrition').Sex | null;
+  body_fat: number | null;
+  activity: import('./nutrition').Activity | null;
+  bmr: number | null;
+  tdee: number | null;
+  adjust_pct: number;
+  protein_per_kg: number;
+  fat_per_kg: number;
+  published: boolean;
+  start_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DietDay {
+  id: string;
+  plan_id: string;
+  title: string;
+  weekdays: number[];
+  position: number;
+  target_kcal: number;
+  target_protein: number;
+  target_carbs: number;
+  target_fat: number;
+}
+export interface DietMeal { id: string; day_id: string; title: string; time_hint: string | null; notes: string; position: number }
+export interface DietItem { id: string; meal_id: string; food_id: string; grams: number; position: number }
+
+export interface FullDietPlan extends DietPlan {
+  days: (DietDay & { meals: (DietMeal & { items: (DietItem & { food: Food })[] })[] })[];
 }

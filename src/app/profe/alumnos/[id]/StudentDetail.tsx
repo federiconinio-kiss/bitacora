@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { FullRoutine, Measurement, Profile, SetLog, TrainingInfo } from '@/lib/types';
+import type { DietPlan, FullRoutine, Measurement, Profile, SetLog, TrainingInfo } from '@/lib/types';
+import { GOALS } from '@/lib/nutrition';
 import TrainingInfoForm, { levelLabel } from '@/components/LevelPicker';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { daysBetween, fmtDate, initials, num, todayISO } from '@/lib/utils';
@@ -11,10 +12,10 @@ import { MeasurementsHistory, TrainingHistory } from '@/components/History';
 import { IconBack } from '@/components/Icons';
 import { deleteStudent, sendAccessEmail, setStudentActive, setTempPassword } from '../../actions';
 
-type Tab = 'rutinas' | 'historial' | 'datos';
+type Tab = 'rutinas' | 'historial' | 'nutricion' | 'datos';
 
-export default function StudentDetail({ student, routines, logs, measurements, initialTab, trainingInfo }: {
-  student: Profile; routines: FullRoutine[]; logs: SetLog[]; measurements: Measurement[]; initialTab: Tab; trainingInfo: TrainingInfo | null;
+export default function StudentDetail({ student, routines, logs, measurements, initialTab, trainingInfo, diets }: {
+  student: Profile; routines: FullRoutine[]; logs: SetLog[]; measurements: Measurement[]; initialTab: Tab; trainingInfo: TrainingInfo | null; diets: DietPlan[];
 }) {
   const [level, setLevel] = useState(trainingInfo?.level ?? null);
   const router = useRouter();
@@ -33,6 +34,31 @@ export default function StudentDetail({ student, routines, logs, measurements, i
     setBusy(false);
     if (error) return setMsg({ ok: false, text: error.message });
     router.push(`/profe/rutinas/${data.id}`);
+  }
+
+  async function newDiet() {
+    setBusy(true);
+    const goal = GOALS[1];
+    const prev = diets[0];
+    const { data, error } = await supabaseBrowser().from('diet_plans').insert({
+      student_id: student.id,
+      name: `Plan de alimentación ${diets.length + 1}`,
+      goal_type: prev?.goal_type ?? goal.key,
+      explanation: prev?.explanation ?? goal.text,
+      adjust_pct: prev?.adjust_pct ?? goal.adjust,
+      protein_per_kg: prev?.protein_per_kg ?? goal.protein,
+      fat_per_kg: prev?.fat_per_kg ?? goal.fat,
+      method: prev?.method ?? 'mifflin',
+      weight_kg: lastMeas?.weight ?? prev?.weight_kg ?? null,
+      body_fat: lastMeas?.body_fat ?? prev?.body_fat ?? null,
+      height_cm: trainingInfo?.height_cm ?? prev?.height_cm ?? null,
+      sex: trainingInfo?.sex ?? prev?.sex ?? null,
+      activity: trainingInfo?.activity ?? prev?.activity ?? null,
+      age: student.age,
+    }).select('id').single();
+    setBusy(false);
+    if (error) return setMsg({ ok: false, text: error.message });
+    router.push(`/profe/dietas/${data.id}`);
   }
 
   async function duplicate(r: FullRoutine) {
@@ -73,9 +99,9 @@ export default function StudentDetail({ student, routines, logs, measurements, i
       </div>
 
       <div className="chips" role="tablist">
-        {(['rutinas', 'historial', 'datos'] as Tab[]).map((t) => (
+        {(['rutinas', 'historial', 'nutricion', 'datos'] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} className={`chip ${tab === t ? 'on' : ''}`} onClick={() => setTab(t)}>
-            {t === 'rutinas' ? 'Rutinas' : t === 'historial' ? 'Historial y medidas' : 'Datos y acceso'}
+            {t === 'rutinas' ? 'Rutinas' : t === 'historial' ? 'Historial y medidas' : t === 'nutricion' ? 'Nutrición' : 'Datos y acceso'}
           </button>
         ))}
       </div>
@@ -100,6 +126,37 @@ export default function StudentDetail({ student, routines, logs, measurements, i
                 <div className="row wrap" style={{ marginTop: 12 }}>
                   <Link className="btn sm primary" href={`/profe/rutinas/${r.id}`}>Editar</Link>
                   <button className="btn sm" disabled={busy} onClick={() => duplicate(r)}>Duplicar</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'nutricion' && (
+        <div className="stack">
+          <div className="row wrap">
+            <button className="btn primary" disabled={busy} onClick={newDiet}>+ Nuevo plan de alimentación</button>
+          </div>
+          {diets.length === 0 && (
+            <div className="sheet empty">
+              <p className="ink">Todavía no tiene plan de alimentación.</p>
+              <p className="muted small">Calculás su gasto calórico, elegís el objetivo y armás las comidas por día tipo.</p>
+            </div>
+          )}
+          <div className="grid-2">
+            {diets.map((d, i) => (
+              <article key={d.id} className={`sheet ${i % 2 ? 'tilt-r' : 'tilt-l'}`}>
+                <div className="row between wrap">
+                  <h2 className="h-hand">{d.name}</h2>
+                  {d.published ? <span className="stamp green" style={{ fontSize: '.8rem' }}>Publicado</span> : <span className="tag amber">borrador</span>}
+                </div>
+                <p className="type" style={{ margin: '4px 0' }}>
+                  {GOALS.find((g) => g.key === d.goal_type)?.label} · desde {fmtDate(d.start_date, { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {d.tdee ? ` · gasto ${d.tdee.toLocaleString('es-AR')} kcal` : ''}
+                </p>
+                <div className="row wrap" style={{ marginTop: 12 }}>
+                  <Link className="btn sm primary" href={`/profe/dietas/${d.id}`}>Editar</Link>
                 </div>
               </article>
             ))}
