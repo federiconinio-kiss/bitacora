@@ -11,6 +11,7 @@ const KEY = 'ecf:pending-sets:v1';
 export type SetRow = {
   student_id: string; routine_exercise_id: string; exercise_id: string;
   performed_on: string; set_number: number; reps: number | null; weight: number | null;
+  skipped?: boolean; skip_reason?: string | null;
 };
 export type PendingOp =
   | { k: string; type: 'upsert'; row: SetRow }

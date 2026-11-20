@@ -73,6 +73,8 @@ export interface SetLog {
   set_number: number;
   reps: number | null;
   weight: number | null;
+  skipped?: boolean;
+  skip_reason?: string | null;
 }
 
 export interface Measurement {
@@ -240,4 +242,23 @@ export interface DietCheckin {
   trainer_seen_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  student_id: string;
+  routine_id: string | null;
+  day_id: string | null;
+  day_title: string;
+  performed_on: string;
+  started_at: string;
+  ended_at: string | null;
+  end_reason: 'completo' | 'manual' | 'olvidado' | null;
+  total_sets: number;
+  done_sets: number;
+  skipped_sets: number;
+  summary: { skipped?: { exercise: string; sets: number[]; reason: string | null }[]; pending?: { exercise: string; sets: number[] }[] };
+  reminder_sent_at: string | null;
+  trainer_seen_at: string | null;
+  created_at: string;
 }

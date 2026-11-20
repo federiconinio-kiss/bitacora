@@ -53,3 +53,16 @@ export async function sendPush(userId: string, msg: PushMessage) {
   }));
   return { sent };
 }
+
+/**
+ * Guarda la dirección pública de la app (la usa la tarea programada de la base
+ * para avisar de entrenamientos sin finalizar). Sólo direcciones https.
+ */
+export async function rememberSiteUrl(request: Request) {
+  try {
+    const env = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    const origin = env.startsWith('https://') ? env : new URL(request.url).origin;
+    if (!origin.startsWith('https://')) return;
+    await supabaseAdmin().from('app_config').upsert({ key: 'site_url', value: origin }, { onConflict: 'key' });
+  } catch { /* no es crítico */ }
+}

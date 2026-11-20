@@ -727,3 +727,93 @@ create table if not exists public.app_config (
 alter table public.app_config enable row level security;
 revoke all on public.app_config from anon, authenticated;
 grant all on public.app_config to service_role;
+
+-- =====================================================================
+-- SESIONES DE ENTRENAMIENTO Y SERIES SALTEADAS
+-- =====================================================================
+alter table public.set_logs
+  add column if not exists skipped boolean not null default false,
+  add column if not exists skip_reason text;
+
+create table if not exists public.workout_sessions (
+  id               uuid primary key default gen_random_uuid(),
+  student_id       uuid not null references public.profiles(id) on delete cascade default auth.uid(),
+  routine_id       uuid references public.routines(id) on delete set null,
+  day_id           uuid references public.routine_days(id) on delete set null,
+  day_title        text not null default '',
+  performed_on     date not null default current_date,
+  started_at       timestamptz not null default now(),
+  ended_at         timestamptz,
+  end_reason       text check (end_reason in ('completo','manual','olvidado')),
+  total_sets       int not null default 0,
+  done_sets        int not null default 0,
+  skipped_sets     int not null default 0,
+  summary          jsonb not null default '{}'::jsonb,   -- ejercicios salteados / sin cargar
+  reminder_sent_at timestamptz,
+  trainer_seen_at  timestamptz,
+  created_at       timestamptz not null default now(),
+  unique (student_id, day_id, performed_on)
+);
+create index if not exists workout_sessions_student_idx on public.workout_sessions(student_id, performed_on desc);
+create index if not exists workout_sessions_open_idx on public.workout_sessions(started_at) where ended_at is null;
+alter table public.workout_sessions enable row level security;
+drop policy if exists sessions_student on public.workout_sessions;
+create policy sessions_student on public.workout_sessions for all to authenticated
+  using (student_id = auth.uid()) with check (student_id = auth.uid());
+drop policy if exists sessions_trainer on public.workout_sessions;
+create policy sessions_trainer on public.workout_sessions for select to authenticated
+  using (public.is_trainer_of(student_id));
+grant select, insert, update, delete on public.workout_sessions to authenticated;
+
+create or replace function public.mark_sessions_seen(p_ids uuid[])
+returns void language sql security definer set search_path = public as $$
+  update public.workout_sessions set trainer_seen_at = now()
+   where id = any(p_ids) and public.is_trainer_of(student_id);
+$$;
+grant execute on function public.mark_sessions_seen(uuid[]) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- Aviso de "entrenamiento sin finalizar" a la 1,5 h (pg_cron + pg_net).
+-- La app guarda su dirección (site_url) la primera vez que alguien activa
+-- las notificaciones; el secreto se genera acá y la app lo verifica.
+-- ---------------------------------------------------------------------
+create extension if not exists pg_net;
+create extension if not exists pg_cron;
+
+insert into public.app_config (key, value)
+values ('cron_secret', replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''))
+on conflict (key) do nothing;
+
+create or replace function public.notify_stale_sessions()
+returns int language plpgsql security definer set search_path = public as $$
+declare
+  v_url text := (select value from public.app_config where key = 'site_url');
+  v_secret text := (select value from public.app_config where key = 'cron_secret');
+  r record;
+  n int := 0;
+begin
+  if v_url is null or v_secret is null then return 0; end if;
+  for r in
+    select id from public.workout_sessions
+     where ended_at is null and reminder_sent_at is null
+       and started_at < now() - interval '90 minutes'
+       and started_at > now() - interval '24 hours'
+     for update skip locked
+  loop
+    perform net.http_post(
+      url := v_url || '/api/cron/stale-session',
+      headers := jsonb_build_object('Content-Type', 'application/json', 'x-cron-secret', v_secret),
+      body := jsonb_build_object('session_id', r.id)
+    );
+    update public.workout_sessions set reminder_sent_at = now() where id = r.id;
+    n := n + 1;
+  end loop;
+  return n;
+end $$;
+revoke execute on function public.notify_stale_sessions() from public, anon, authenticated;
+
+do $$
+begin
+  perform cron.unschedule(jobid) from cron.job where jobname = 'entrenamientos-sin-finalizar';
+  perform cron.schedule('entrenamientos-sin-finalizar', '*/5 * * * *', 'select public.notify_stale_sessions()');
+end $$;

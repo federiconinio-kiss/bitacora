@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { vapidKeys } from '@/lib/push';
+import { rememberSiteUrl, vapidKeys } from '@/lib/push';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    await rememberSiteUrl(request);
     const { publicKey } = await vapidKeys();
     return NextResponse.json({ publicKey });
   } catch (e) {

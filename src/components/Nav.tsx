@@ -1,6 +1,7 @@
 'use client';
 import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
+import ActiveWorkoutBar from './ActiveWorkoutBar';
 import { IconApple, IconBell, IconBook, IconChart, IconLogo, IconLogout, IconPlan, IconUser, IconUsers } from './Icons';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: number; exact?: boolean };
@@ -42,6 +43,7 @@ export function StudentNav({ name }: { name: string }) {
           <Logout />
         </div>
       </header>
+      <ActiveWorkoutBar />
       <nav className="tabbar" aria-label="Secciones">
         {items.map((it) => (
           <Link key={it.href} href={it.href} className={isOn(it) ? 'on' : ''}>

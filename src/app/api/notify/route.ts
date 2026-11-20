@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { getMe } from '@/lib/data';
-import { sendPush, type PushMessage } from '@/lib/push';
+import { rememberSiteUrl, sendPush, type PushMessage } from '@/lib/push';
 import { COMPLIED, deviationText } from '@/lib/diet';
 
-type Event = 'progression_requested' | 'progression_resolved' | 'routine_published' | 'diet_published' | 'checkin';
+type Event = 'progression_requested' | 'progression_resolved' | 'routine_published' | 'diet_published' | 'checkin' | 'session_finished';
 const fmtKg = (n: unknown) => `${Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 })} kg`;
 const first = (name: string | null | undefined, email: string) => (name || email).split(' ')[0];
 
@@ -18,6 +18,7 @@ export async function POST(request: Request) {
   if (!me) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
   const { event, id } = (await request.json().catch(() => ({}))) as { event?: Event; id?: string };
   if (!event || !id) return NextResponse.json({ error: 'Pedido incompleto.' }, { status: 400 });
+  void rememberSiteUrl(request);
 
   let to: string | null = null;
   let msg: PushMessage | null = null;
@@ -63,6 +64,20 @@ export async function POST(request: Request) {
         : '';
       to = me.trainer_id;
       msg = { title: `${first(me.full_name, me.email)} cerró el día: ${COMPLIED[c.complied as 'si' | 'parcial' | 'no'].label.toLowerCase()}`, body: [dev, c.comment ? `“${c.comment}”` : ''].filter(Boolean).join(' · ') || 'Mirá el detalle en Avisos.', url: '/profe', tag: `checkin-${c.id}` };
+    }
+  }
+
+  else if (event === 'session_finished' && me.role === 'student') {
+    const { data: w } = await sb.from('workout_sessions').select('*').eq('id', id).maybeSingle();
+    // Sólo se avisa al profe si hubo series salteadas o sin cargar.
+    if (w && w.student_id === me.id && w.ended_at && me.trainer_id && (w.skipped_sets > 0 || w.done_sets + w.skipped_sets < w.total_sets)) {
+      const pend = w.total_sets - w.done_sets - w.skipped_sets;
+      const parts = [
+        w.skipped_sets ? `${w.skipped_sets} ${w.skipped_sets === 1 ? 'serie salteada' : 'series salteadas'}` : '',
+        pend > 0 ? `${pend} sin cargar` : '',
+      ].filter(Boolean).join(' · ');
+      to = me.trainer_id;
+      msg = { title: `${first(me.full_name, me.email)} terminó ${w.day_title || 'su entrenamiento'}`, body: `${w.done_sets}/${w.total_sets} series hechas · ${parts}. Mirá el detalle en Avisos.`, url: '/profe', tag: `session-${w.id}` };
     }
   }
 

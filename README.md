@@ -79,6 +79,14 @@ Abrí la URL en el celular:
 - iPhone: Safari → Compartir → *Agregar a pantalla de inicio*.
 - Android: Chrome → menú → *Instalar app*.
 
+## Sesión de entrenamiento
+
+- El alumno toca **Iniciar entrenamiento** (o simplemente carga la primera serie) y arranca un cronómetro.
+- **Finaliza** solo cuando todas las series tienen peso y reps (o fueron salteadas), o cuando el alumno toca **Finalizar**. Si faltan series, la app las lista y pide confirmación.
+- Si cambia de sección a mitad del entrenamiento, la app pregunta si quiere ver otra sección (sigue entrenando, con una barra para volver) o finalizar.
+- A la **1,5 h** sin finalizar le llega una notificación ("¿Seguís entrenando?"). La manda una tarea programada de Supabase (pg_cron, cada 5 minutos) que no requiere configuración.
+- Se puede **saltear una serie o un ejercicio** con un motivo (máquina ocupada, dolor, sin tiempo…). Al finalizar, si hubo series salteadas o sin cargar, al profe le llega una notificación y lo ve en **Avisos → Entrenamientos incompletos**.
+
 ## Notificaciones
 
 Los alumnos y el profe activan las notificaciones desde la app (botón **Activar**, en el inicio o en el perfil). No hace falta configurar nada: las claves se generan solas la primera vez.

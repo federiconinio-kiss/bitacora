@@ -4,16 +4,18 @@ import type { Profile, ProgressionRequest } from '@/lib/types';
 import { daysBetween, fmtDate, todayISO } from '@/lib/utils';
 import ProgressionInbox, { type InboxItem } from './ProgressionInbox';
 import NutritionInbox, { type CheckinItem } from './NutritionInbox';
+import SessionsInbox, { type SessionItem } from './SessionsInbox';
 import PushToggle from '@/components/PushToggle';
-import type { DietCheckin } from '@/lib/types';
+import type { DietCheckin, WorkoutSession } from '@/lib/types';
 
 export default async function TrainerHome() {
   const { sb, me } = await requireUser('trainer');
-  const [{ data: reqs }, { data: students }, { data: recentResolved }, { data: checkins }] = await Promise.all([
+  const [{ data: reqs }, { data: students }, { data: recentResolved }, { data: checkins }, { data: wsessions }] = await Promise.all([
     sb.from('progression_requests').select('*').eq('status', 'pending').order('created_at'),
     sb.from('profiles').select('*').eq('trainer_id', me.id).eq('active', true).order('full_name'),
     sb.from('progression_requests').select('*').neq('status', 'pending').order('resolved_at', { ascending: false }).limit(8),
     sb.from('diet_checkins').select('*').is('trainer_seen_at', null).order('day', { ascending: false }).limit(40),
+    sb.from('workout_sessions').select('*').is('trainer_seen_at', null).not('ended_at', 'is', null).order('ended_at', { ascending: false }).limit(60),
   ]);
   const pending = (reqs ?? []) as ProgressionRequest[];
   const resolved = (recentResolved ?? []) as ProgressionRequest[];
@@ -62,6 +64,12 @@ export default async function TrainerHome() {
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <section className="stack">
+          <h2 className="h-hand">Entrenamientos incompletos</h2>
+          <section className="sheet plain">
+            <SessionsInbox items={((wsessions ?? []) as WorkoutSession[])
+              .filter((w) => w.skipped_sets > 0 || w.done_sets + w.skipped_sets < w.total_sets)
+              .map((w): SessionItem => ({ ...w, studentName: byId.get(w.student_id)?.full_name || byId.get(w.student_id)?.email || 'Alumno' }))} />
+          </section>
           <h2 className="h-hand">Subidas de carga</h2>
           {items.length ? (
             <ProgressionInbox items={items} />
