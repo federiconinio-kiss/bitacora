@@ -25,7 +25,7 @@ export default function AiReview({ routineId, studentId, studentName, goal, init
   routineId: string; studentId: string; studentName: string; goal: string; initialLevel: Level | null; initialReviews: RoutineReview[];
 }) {
   const [level, setLevel] = useState<Level | null>(initialLevel);
-  const [method, setMethod] = useState<Methodology>('evidencia');
+  const [method, setMethod] = useState<Methodology>('guia');
   const [reviews, setReviews] = useState(initialReviews);
   const [shownId, setShownId] = useState(initialReviews[0]?.id ?? null);
   const [busy, setBusy] = useState(false);
@@ -92,12 +92,12 @@ export default function AiReview({ routineId, studentId, studentName, goal, init
         </p>
 
         <div className="grid-2">
-          <div className="stack" style={{ gap: 6 }}>
+          <div className="stack" style={{ gap: 6, minWidth: 0 }}>
             <span className="type">Nivel del alumno</span>
             <LevelChips value={level} onChange={pickLevel} disabled={busy} />
             <span className="small muted">{level ? LEVELS.find((l) => l.key === level)?.hint : 'Sin nivel cargado: la IA evalúa sin ese dato.'}</span>
           </div>
-          <div className="stack" style={{ gap: 6 }}>
+          <div className="stack" style={{ gap: 6, minWidth: 0 }}>
             <span className="type">Marco de referencia</span>
             <div className="chips" role="radiogroup" aria-label="Marco de referencia">
               {(Object.keys(METHODOLOGY_LABELS) as Methodology[]).map((m) => (
@@ -108,7 +108,8 @@ export default function AiReview({ routineId, studentId, studentName, goal, init
               ))}
             </div>
             <span className="small muted">
-              {method === 'evidencia' ? 'Consenso de la investigación actual (volumen, cercanía al fallo, ejercicios en estiramiento, descansos) y la práctica aceptada en el gimnasio.'
+              {method === 'guia' ? 'Tu guía de Notion: volúmenes y progresión por nivel, reglas de RIR y fallo, descargas y anatomía de cada grupo.'
+                : method === 'evidencia' ? 'Consenso de la investigación actual (volumen, cercanía al fallo, ejercicios en estiramiento, descansos) y la práctica aceptada en el gimnasio.'
                 : method === 'piramide' ? 'Volumen, intensidad y frecuencia según Helms (RIR, 10–20 series por grupo, 2×/semana).'
                 : method === 'heavy_duty' ? 'Alta intensidad según Mentzer: pocas series al fallo y mucha recuperación.'
                 : 'Evalúa con los dos marcos y te muestra en qué coinciden y en qué no.'}

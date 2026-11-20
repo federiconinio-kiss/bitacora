@@ -10,6 +10,9 @@ import VideoButton from '@/components/VideoButton';
 import { IconBack, IconDown, IconPlus, IconSwap, IconTrash, IconUp, IconX } from '@/components/Icons';
 import type { Profile, RoutineReview, TrainingInfo } from '@/lib/types';
 import AiReview from './AiReview';
+import TemplatePicker from './TemplatePicker';
+import { applyTemplate as loadTemplate } from '@/lib/applyTemplate';
+import type { RoutineTemplate } from '@/lib/templates';
 import { notify } from '@/lib/notify';
 
 type Day = FullRoutine['days'][number];
@@ -20,7 +23,7 @@ type PickerState =
   | { kind: 'alt'; dayId: string; rex: Rex }
   | null;
 
-const TEMPLATES: { label: string; days: { title: string; dow: number }[] }[] = [
+const DAY_TEMPLATES: { label: string; days: { title: string; dow: number }[] }[] = [
   { label: 'Torso / Piernas (4 días)', days: [{ title: 'Torso A', dow: 1 }, { title: 'Piernas A', dow: 2 }, { title: 'Torso B', dow: 4 }, { title: 'Piernas B', dow: 5 }] },
   { label: 'Tren superior / inferior (2 días)', days: [{ title: 'Tren superior', dow: 1 }, { title: 'Tren inferior', dow: 4 }] },
   { label: 'Full body (3 días)', days: [{ title: 'Full body A', dow: 1 }, { title: 'Full body B', dow: 3 }, { title: 'Full body C', dow: 5 }] },
@@ -35,6 +38,8 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
   const [picker, setPicker] = useState<PickerState>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [tplOpen, setTplOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
 
   const ok = (m = 'Guardado') => { setStatus(m); setErr(null); setTimeout(() => setStatus(null), 1600); };
   const fail = (e: { message: string } | null) => { if (e) { setErr(e.message); return true; } return false; };
@@ -67,8 +72,23 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
   }
 
   async function applyTemplate(i: number) {
-    for (const [k, d] of TEMPLATES[i].days.entries()) await addDay(d.title, d.dow, k);
+    for (const [k, d] of DAY_TEMPLATES[i].days.entries()) await addDay(d.title, d.dow, k);
     ok('Días creados');
+  }
+
+  async function applyGuideTemplate(t: RoutineTemplate, withOptional: boolean) {
+    try {
+      const res = await loadTemplate(sb, r, t, exercises, withOptional);
+      setR((x) => ({ ...x, ...res.fields, days: [...x.days, ...res.days] }));
+      setFormKey((k) => k + 1);
+      if (res.created.length) setExercises((l) => [...l, ...res.created.filter((c) => !l.some((e) => e.id === c.id))]);
+      setTplOpen(false);
+      if (res.skipped.length) setErr(`Plantilla cargada, pero faltan en el catálogo: ${res.skipped.join(', ')}. Agregalos a mano.`);
+      else ok('Plantilla cargada');
+      router.refresh();
+    } catch (e) {
+      setErr('No se pudo cargar la plantilla: ' + (e as Error).message);
+    }
   }
 
   async function saveDay(d: Day, fields: Partial<Day>) {
@@ -181,7 +201,7 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
       </div>
       {err && <p className="notice red" role="alert">{err} <button className="btn ghost sm" onClick={() => setErr(null)}>ok</button></p>}
 
-      <section className="sheet tilt-l">
+      <section key={formKey} className="sheet tilt-l">
         <span className="tape" />
         <div className="grid-2">
           <div className="stack-lg">
@@ -202,9 +222,11 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
       {r.days.length === 0 && (
         <div className="sheet plain stack">
           <h2 className="h-hand">Empezá por los días</h2>
-          <p className="muted" style={{ margin: 0 }}>Usá una plantilla o creá los días a mano.</p>
+          <p className="muted" style={{ margin: 0 }}>Cargá una rutina completa de tu guía, o solo la estructura de días para armarla a mano.</p>
+          <div><button className="btn primary" onClick={() => setTplOpen(true)}>Usar una plantilla de la guía</button></div>
+          <span className="type">Solo los días</span>
           <div className="row wrap">
-            {TEMPLATES.map((t, i) => <button key={t.label} className="btn sm" onClick={() => applyTemplate(i)}>{t.label}</button>)}
+            {DAY_TEMPLATES.map((t, i) => <button key={t.label} className="btn sm" onClick={() => applyTemplate(i)}>{t.label}</button>)}
           </div>
         </div>
       )}
@@ -282,7 +304,10 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
         </section>
       ))}
 
-      <button className="btn" onClick={() => addDay()}><IconPlus /> Agregar día</button>
+      <div className="row wrap">
+        <button className="btn" onClick={() => addDay()}><IconPlus /> Agregar día</button>
+        {r.days.length > 0 && <button className="btn ghost" onClick={() => setTplOpen(true)}>Agregar desde una plantilla de la guía</button>}
+      </div>
 
       <AiReview
         routineId={r.id}
@@ -292,6 +317,11 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
         initialLevel={trainingInfo?.level ?? null}
         initialReviews={reviews}
       />
+
+      {tplOpen && (
+        <TemplatePicker routineId={r.id} level={trainingInfo?.level ?? null} hasDays={r.days.length > 0}
+          onApply={applyGuideTemplate} onClose={() => setTplOpen(false)} />
+      )}
 
       {picker && (
         <ExercisePicker

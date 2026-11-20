@@ -698,7 +698,7 @@ grant execute on function public.mark_checkins_seen(uuid[]) to authenticated;
 -- Nuevo marco de revisión: evidencia científica actual
 alter table public.routine_reviews drop constraint if exists routine_reviews_methodology_check;
 alter table public.routine_reviews add constraint routine_reviews_methodology_check
-  check (methodology in ('evidencia','piramide','heavy_duty','ambas'));
+  check (methodology in ('guia','evidencia','piramide','heavy_duty','ambas'));
 
 -- =====================================================================
 -- NOTIFICACIONES PUSH

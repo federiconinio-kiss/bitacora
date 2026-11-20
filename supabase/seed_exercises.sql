@@ -1,4 +1,4 @@
--- Catálogo base de ejercicios (130). Generado por scripts/build-seed.mjs
+-- Catálogo base de ejercicios (132). Generado por scripts/build-seed.mjs
 insert into public.exercises (name, muscle_group, equipment, cues) values
   ('Press de banca con barra', 'Pecho', 'Barra', 'Escápulas juntas y abajo, pies firmes, la barra baja a la línea del pezón.'),
   ('Press de banca con mancuernas', 'Pecho', 'Mancuernas', 'Codos a ~45°, bajá controlado hasta sentir estiramiento.'),
@@ -32,6 +32,8 @@ insert into public.exercises (name, muscle_group, equipment, cues) values
   ('Remo en Smith', 'Espalda', 'Smith', 'Torso inclinado fijo, barra hacia el ombligo.'),
   ('Remo invertido', 'Espalda', 'Peso corporal', 'Cuerpo recto bajo la barra, llevá el pecho hacia ella.'),
   ('Remo en máquina unilateral', 'Espalda', 'Máquina', 'Un brazo por vez, estirá completo adelante.'),
+  ('Remo unilateral en polea', 'Espalda', 'Polea', 'Codo pegado al cuerpo, tirá hacia la cadera; estirá completo adelante.'),
+  ('Remo sentado en polea agarre abierto', 'Espalda', 'Polea', 'Codos abiertos, llevá la barra al pecho y juntá las escápulas.'),
   ('Peso muerto convencional', 'Espalda', 'Barra', 'Barra pegada a las piernas, espalda neutra, empujá el piso.'),
   ('Rack pull', 'Espalda', 'Barra', 'Desde rodillas, extendé caderas apretando glúteos.'),
   ('Hiperextensiones', 'Espalda', 'Banco', 'Bajá con espalda neutra y subí hasta la línea del cuerpo.'),

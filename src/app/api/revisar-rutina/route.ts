@@ -7,7 +7,7 @@ import { buildPrompt, reviewRoutine, ReviewError, type Level, type Methodology }
 // La revisión puede tardar 1–2 minutos.
 export const maxDuration = 300;
 
-const METHODS: Methodology[] = ['evidencia', 'piramide', 'heavy_duty', 'ambas'];
+const METHODS: Methodology[] = ['guia', 'evidencia', 'piramide', 'heavy_duty', 'ambas'];
 
 export async function POST(request: Request) {
   const sb = await supabaseServer();

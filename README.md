@@ -142,7 +142,7 @@ src/components/…                      gráficos, video, festejo y buscador de 
 
 ### Revisión de rutinas con IA (opcional)
 Antes de publicar una rutina, el profe puede pedirle a Claude (IA de Anthropic) una revisión:
-- **Marcos de referencia** (se elige uno): *Evidencia científica* (consenso actual de la investigación y práctica aceptada), *The Muscle & Strength Pyramid* (Helms), *Heavy Duty* (Mentzer), o comparar Pirámide y Heavy Duty.
+- **Marcos de referencia** (se elige uno): *Guía de Fede* (la guía de hipertrofia propia, de Notion: volúmenes y progresión por nivel, reglas de RIR y fallo, descargas y anatomía), *Evidencia científica* (consenso actual de la investigación y práctica aceptada), *The Muscle & Strength Pyramid* (Helms), *Heavy Duty* (Mentzer), o comparar Pirámide y Heavy Duty.
 - **Qué evalúa:** si la rutina se adecua al **nivel del alumno** (principiante, intermedio o avanzado) y a su **objetivo**, cómo queda el volumen semanal y la frecuencia por grupo muscular, y qué cambios concretos haría (día, ejercicio, cambio y motivo).
 - **Qué datos usa:** el nivel, la edad, la última medición y las **notas privadas** del profe (lesiones, experiencia). El nivel y las notas los carga y los ve sólo el profe.
 - **Resultado:** queda guardado en la rutina. La rutina no se modifica sola: el profe decide qué aplicar.
@@ -152,6 +152,12 @@ Antes de publicar una rutina, el profe puede pedirle a Claude (IA de Anthropic) 
 2. En Vercel, en *Settings → Environment Variables*, agregá `ANTHROPIC_API_KEY` con esa clave y hacé *Redeploy*.
 
 Cada revisión cuesta aproximadamente USD 0,05–0,15 y tarda entre 1 y 2 minutos.
+
+### Plantillas de la guía y sugerencia de bloque
+Las rutinas de la *Guía de hipertrofia* de Fede (Notion) están cargadas como plantillas en `src/lib/templates.ts`: principiante 3 días, intermedia 4 días, avanzada 5 días, foco glúteos y piernas (con día 5 opcional), Push Pull Legs, Weider, Heavy Duty básico, intermedio y avanzado, y los planes de fuerza e hipertrofia por niveles.
+- En una rutina, **Usar una plantilla de la guía** carga los días, ejercicios, series, rango de reps, pausa, el RIR o la técnica como nota y los reemplazos. La progresión de la plantilla queda en *Indicaciones generales*. Todo queda editable; las cargas las elige el alumno en su primera sesión.
+- **Sugerir con IA** mira el nivel, los días disponibles, el historial de rutinas, la asistencia y la evolución del 1RM estimado, y recomienda qué plantilla le toca según la *Estrategia para combinar métodos* (con duración, ajustes y cuándo cambiar).
+- Si cambiás la guía en Notion, hay que actualizar `src/lib/templates.ts` y el resumen para la IA en `src/lib/ai/guide.ts`.
 
 ### Plan de alimentación
 En el perfil de cada alumno, pestaña **Nutrición**:

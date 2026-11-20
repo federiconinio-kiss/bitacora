@@ -1,14 +1,15 @@
 import 'server-only';
-import Anthropic from '@anthropic-ai/sdk';
-import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod/v4';
 import type { FullRoutine, Measurement } from '@/lib/types';
 import { DAYS } from '@/lib/utils';
+import { GUIDE_PRINCIPLES } from './guide';
+import { AiError, parseWithClaude } from './claude';
 
-export type Methodology = 'evidencia' | 'piramide' | 'heavy_duty' | 'ambas';
+export type Methodology = 'guia' | 'evidencia' | 'piramide' | 'heavy_duty' | 'ambas';
 export type Level = 'principiante' | 'intermedio' | 'avanzado';
 
 export const METHODOLOGIES: Record<Methodology, string> = {
+  guia: 'Guía de hipertrofia de Fede',
   evidencia: 'Evidencia científica actual y práctica aceptada',
   piramide: 'The Muscle & Strength Pyramid (Training)',
   heavy_duty: 'Heavy Duty (alta intensidad)',
@@ -86,6 +87,8 @@ MARCO "Evidencia científica actual y práctica aceptada". No sigas a un autor: 
 - Progresión y gestión de la fatiga: sobrecarga progresiva medible (por ejemplo, doble progresión), descargas cuando caen el rendimiento o la recuperación, y priorizar al principio de la sesión lo más importante para el objetivo.
 - Práctica aceptada: entrada en calor específica, compuestos antes que aislamientos, sesiones de duración realista (aprox. 45–90 minutos), adherencia y preferencias del alumno, y adaptar los ejercicios ante lesiones o molestias.
 - Si una recomendación tiene evidencia débil o discutida, decilo ("la evidencia es limitada", "es una práctica habitual") en vez de presentarla como un hecho.
+
+${GUIDE_PRINCIPLES}
 
 Si Fede pide comparar Pirámide y Heavy Duty, evaluá la rutina con los dos, mostrá dónde coinciden y dónde no, y en las sugerencias aclará a qué marco responde cada una (por ejemplo, empezando el motivo con "Pirámide:" o "Heavy Duty:").
 
@@ -184,38 +187,10 @@ ${describeRoutine(routine)}`;
 // ---------------------------------------------------------------------------
 // Llamada a Claude
 // ---------------------------------------------------------------------------
-export class ReviewError extends Error {}
+export { AiError as ReviewError };
 
-export async function reviewRoutine(prompt: string): Promise<Review> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new ReviewError('Falta configurar ANTHROPIC_API_KEY en Vercel para usar la revisión con IA.');
-  }
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY.trim(), timeout: 280_000, maxRetries: 1 });
-  try {
-    const response = await client.beta.messages.parse({
-      model: 'claude-opus-5-5',
-      max_tokens: 16000,
-      // Si el modelo declina por error, la API reintenta con otro modelo en el mismo pedido.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: { effort: 'high', format: betaZodOutputFormat(ReviewSchema) },
-      system: SYSTEM,
-      messages: [{ role: 'user', content: prompt }],
-    });
-    if (response.stop_reason === 'refusal') throw new ReviewError('La IA no pudo revisar esta rutina. Probá de nuevo.');
-    if (response.stop_reason === 'max_tokens') throw new ReviewError('La revisión salió demasiado larga. Probá de nuevo.');
-    if (!response.parsed_output) throw new ReviewError('La IA devolvió una respuesta incompleta. Probá de nuevo.');
-    return response.parsed_output;
-  } catch (e) {
-    if (e instanceof ReviewError) throw e;
-    if (e instanceof Anthropic.AuthenticationError) throw new ReviewError('La clave de la IA (ANTHROPIC_API_KEY) no es válida. Revisala en Vercel.');
-    if (e instanceof Anthropic.PermissionDeniedError) throw new ReviewError('La cuenta de la IA no tiene permiso o crédito. Revisá la facturación en console.anthropic.com.');
-    if (e instanceof Anthropic.RateLimitError) throw new ReviewError('Se alcanzó el límite de uso de la IA. Esperá un minuto y probá de nuevo.');
-    if (e instanceof Anthropic.BadRequestError && /credit|balance/i.test(e.message)) throw new ReviewError('La cuenta de la IA no tiene crédito. Cargá saldo en console.anthropic.com.');
-    if (e instanceof Anthropic.APIConnectionTimeoutError) throw new ReviewError('La IA tardó demasiado en responder. Probá de nuevo.');
-    if (e instanceof Anthropic.APIError) throw new ReviewError(`Error de la IA (${e.status ?? 'sin código'}). Probá de nuevo en un rato.`);
-    throw e;
-  }
+export function reviewRoutine(prompt: string): Promise<Review> {
+  return parseWithClaude({ system: SYSTEM, prompt, schema: ReviewSchema, what: 'revisar esta rutina' });
 }
 
 // El tipo inferido del esquema tiene que coincidir con el que usa el cliente.
