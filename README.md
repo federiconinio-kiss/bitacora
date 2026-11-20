@@ -168,6 +168,13 @@ El alumno ve su plan en **Dieta**, con su objetivo de calorías y macros del dí
 - Al **cerrar el día** el alumno indica si cumplió el plan (sí, en parte o no) y deja un comentario. La app calcula el **desvío** (kcal y macros) y el resumen le llega al profe en **Avisos**.
 - En la pestaña **Nutrición** de cada alumno, el profe ve el cumplimiento de los últimos 21 días y el detalle de lo que comió cada día.
 
+**Editar el diario:** tocando una comida cargada se puede cambiar la cantidad, la hora y la comida (por ejemplo, pasarla del almuerzo a la cena), moverla de fecha, **duplicarla** (también para otro día: se pueden planificar comidas hasta 7 días adelante) o borrarla.
+
+**Recetas y productos comerciales** (profe y alumnos):
+- **Recetas:** se arman con varios alimentos de la base (cantidad de cada uno, peso final opcional y porciones). La app calcula los valores cada 100 g y por porción. Quedan en la categoría *Recetas*.
+- **Código de barras:** con la cámara del celular (o escribiendo el número) se busca el producto en Open Food Facts, una base pública y gratuita. Si no está, se cargan los datos de la etiqueta. Quedan en *Alimentos comerciales*.
+- Todo lo que se crea queda disponible para todos y muestra quién lo creó y si es profe o alumno. Cada alumno puede editar o borrar lo suyo; el profe, todo.
+
 La base trae unos 180 alimentos comunes en Argentina, con valores aproximados cada 100 g tomados de tablas de referencia (USDA y ARGENFOODS). El profe puede agregar o corregir alimentos en **Alimentos**.
 
 ### Carga inicial opcional

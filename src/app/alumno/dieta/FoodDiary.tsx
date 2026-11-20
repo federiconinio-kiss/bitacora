@@ -10,7 +10,9 @@ import MacroCounter from '@/components/MacroCounter';
 import { notify } from '@/lib/notify';
 import Modal from '@/components/Modal';
 import { FoodMacrosLine, searchFoods } from '@/components/FoodPicker';
-import { IconBack, IconCheck, IconPlus, IconSearch, IconTrash } from '@/components/Icons';
+import { IconBack, IconCheck, IconEdit, IconPlus, IconSearch, IconTrash } from '@/components/Icons';
+import RecipeEditor from '@/components/RecipeEditor';
+import BarcodeScanner from '@/components/BarcodeScanner';
 
 type Day = FullDietPlan['days'][number];
 type Meal = Day['meals'][number];
@@ -29,6 +31,9 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
   const [logs, setLogs] = useState<FoodLog[]>(initialLogs.map(asNum));
   const [checkin, setCheckin] = useState(initialCheckin);
   const [adding, setAdding] = useState<{ meal: string } | null>(null);
+  const [editing, setEditing] = useState<FoodLog | null>(null);
+  const [foodList, setFoodList] = useState<Food[]>(foods);
+  const maxDate = shiftDate(todayISO(), 7);
   const [toast, setToast] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const isToday = date === todayISO();
@@ -90,10 +95,10 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
       <div className="row between wrap">
         <div className="row" style={{ gap: 6 }}>
           <button className="icon-btn" onClick={() => goTo(shiftDate(date, -1))} aria-label="Día anterior"><IconBack size={20} /></button>
-          <input type="date" className="input box" style={{ width: 'auto', fontSize: '1.15rem' }} value={date} max={todayISO()} onChange={(e) => e.target.value && goTo(e.target.value)} aria-label="Fecha" />
-          {!isToday && <button className="icon-btn" style={{ transform: 'scaleX(-1)' }} onClick={() => goTo(shiftDate(date, 1))} aria-label="Día siguiente"><IconBack size={20} /></button>}
+          <input type="date" className="input box" style={{ width: 'auto', fontSize: '1.15rem' }} value={date} max={maxDate} onChange={(e) => e.target.value && goTo(e.target.value)} aria-label="Fecha" />
+          {date < maxDate && <button className="icon-btn" style={{ transform: 'scaleX(-1)' }} onClick={() => goTo(shiftDate(date, 1))} aria-label="Día siguiente"><IconBack size={20} /></button>}
         </div>
-        <span className="type">{isToday ? 'Hoy' : fmtDate(date, { weekday: 'long', day: 'numeric', month: 'short' })}{day ? ` · ${day.title}` : ''}</span>
+        <span className="type">{isToday ? 'Hoy' : fmtDate(date, { weekday: 'long', day: 'numeric', month: 'short' })}{date > todayISO() ? ' · planificado' : ''}{day ? ` · ${day.title}` : ''}</span>
       </div>
 
       <section className="sheet grid-paper stack">
@@ -164,17 +169,17 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
               <div style={{ borderBottom: '1.5px solid var(--graphite)', paddingBottom: 2, marginTop: 6 }}>
                 <b>{label}</b>{' '}
                 <span className="type" style={{ whiteSpace: 'nowrap' }}>· {Math.round(gt.kcal)} kcal</span>
-                <span className="type" style={{ display: 'block' }}>P {Math.round(gt.protein)} g · C {Math.round(gt.carbs)} g · G {Math.round(gt.fat)} g</span>
+                <span className="macros-line">P <b>{Math.round(gt.protein)} g</b> C <b>{Math.round(gt.carbs)} g</b> G <b>{Math.round(gt.fat)} g</b></span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {list.map((l) => (
-                  <li key={l.id} className="row" style={{ borderBottom: '1px solid var(--rule)', padding: '4px 0', gap: 8, alignItems: 'center' }}>
+                  <li key={l.id} className="row log-row" style={{ borderBottom: '1px solid var(--rule)', padding: '6px 0', gap: 8, alignItems: 'center' }}>
                     <span className="type" style={{ width: 44 }}>{l.logged_at?.slice(0, 5) ?? ''}</span>
-                    <span className="grow" style={{ minWidth: 0 }}>
-                      {l.grams != null && <b className="ink" style={{ fontSize: '1.2rem' }}>{r1(l.grams)} g </b>}{l.name}
-                      <span className="type" style={{ display: 'block' }}>{Math.round(l.kcal)} kcal · P {r1(l.protein)} · C {r1(l.carbs)} · G {r1(l.fat)}</span>
-                    </span>
-                    <button className="icon-btn" style={{ border: 0, width: 34, height: 34 }} onClick={() => removeLog(l.id)} aria-label={`Borrar ${l.name}`}><IconTrash size={16} /></button>
+                    <button type="button" className="grow log-main" onClick={() => setEditing(l)} aria-label={`Editar ${l.name}`}>
+                      <span>{l.grams != null && <b className="ink" style={{ fontSize: '1.2rem' }}>{r1(l.grams)} g </b>}{l.name}</span>
+                      <span className="macros-line"><span className="kcal">{Math.round(l.kcal)} kcal</span><span>P <b>{r1(l.protein)}</b></span><span>C <b>{r1(l.carbs)}</b></span><span>G <b>{r1(l.fat)}</b></span></span>
+                    </button>
+                    <button className="icon-btn" style={{ border: 0, width: 34, height: 34 }} onClick={() => setEditing(l)} aria-label={`Opciones de ${l.name}`}><IconEdit size={17} /></button>
                   </li>
                 ))}
               </ul>
@@ -189,8 +194,15 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
       )}
 
       {toast && <div className="toast" role="status">{toast}</div>}
+      {editing && (
+        <EditEntry log={editing} food={foodList.find((f) => f.id === editing.food_id) ?? null} mealNames={mealNames} maxDate={maxDate}
+          onClose={() => setEditing(null)}
+          onSaved={(l) => { setEditing(null); setLogs((xs) => (l.logged_on === date ? xs.map((x) => (x.id === l.id ? asNum(l) : x)) : xs.filter((x) => x.id !== l.id))); flash(l.logged_on === date ? '✓ Cambios guardados' : `Movido al ${fmtDate(l.logged_on)}`); }}
+          onDuplicated={(l) => { setEditing(null); if (l.logged_on === date) setLogs((xs) => [...xs, asNum(l)]); flash(l.logged_on === date ? '✓ Duplicado' : `✓ Duplicado para el ${fmtDate(l.logged_on)}`); }}
+          onDeleted={(id) => { setEditing(null); removeLog(id); }} />
+      )}
       {adding && (
-        <AddEntry foods={foods} mealNames={mealNames} initialMeal={adding.meal} defaultTime={isToday ? nowHHMM() : ''}
+        <AddEntry foods={foodList} onFoodCreated={(f) => setFoodList((l) => [...l, f])} mealNames={mealNames} initialMeal={adding.meal} defaultTime={isToday ? nowHHMM() : ''}
           onClose={() => setAdding(null)}
           onAdd={async (row) => { const ok = await insertLogs([row]); if (ok) { setAdding(null); flash(`✓ ${row.name} agregado`); } }} />
       )}
@@ -258,9 +270,10 @@ function CloseDay({ studentId, date, planId, total, target, checkin, onSaved, go
 // ----------------------------------------------------------------------------
 type NewLog = Omit<FoodLog, 'id' | 'created_at' | 'student_id' | 'logged_on'>;
 
-function AddEntry({ foods, mealNames, initialMeal, defaultTime, onClose, onAdd }: {
-  foods: Food[]; mealNames: string[]; initialMeal: string; defaultTime: string; onClose: () => void; onAdd: (row: NewLog) => void;
+function AddEntry({ foods, mealNames, initialMeal, defaultTime, onClose, onAdd, onFoodCreated }: {
+  foods: Food[]; mealNames: string[]; initialMeal: string; defaultTime: string; onClose: () => void; onAdd: (row: NewLog) => void; onFoodCreated: (f: Food) => void;
 }) {
+  const [sub, setSub] = useState<'receta' | 'codigo' | null>(null);
   const [mode, setMode] = useState<'buscar' | 'rapido'>('buscar');
   const [meal, setMeal] = useState(initialMeal);
   const [time, setTime] = useState(defaultTime);
@@ -336,6 +349,10 @@ function AddEntry({ foods, mealNames, initialMeal, defaultTime, onClose, onAdd }
                 <IconSearch />
                 <input className="input" autoFocus placeholder="Buscar: huevo, arroz, yogur…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar alimento" />
               </label>
+              <div className="row wrap" style={{ gap: 8 }}>
+                <button type="button" className="btn sm" onClick={() => setSub('codigo')}>▥ Escanear código</button>
+                <button type="button" className="btn sm" onClick={() => setSub('receta')}>＋ Crear receta</button>
+              </div>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: '38dvh', overflow: 'auto' }}>
                 {results.map((f) => (
                   <li key={f.id}>
@@ -363,6 +380,91 @@ function AddEntry({ foods, mealNames, initialMeal, defaultTime, onClose, onAdd }
         {err && <p className="notice red" style={{ margin: 0 }}>{err}</p>}
         <button className="btn primary">Agregar</button>
       </form>
+      {sub === 'receta' && (
+        <RecipeEditor foods={foods} onClose={() => setSub(null)}
+          onSaved={(f) => { setSub(null); onFoodCreated(f); setMode('buscar'); pick(f); }} />
+      )}
+      {sub === 'codigo' && (
+        <BarcodeScanner onClose={() => setSub(null)}
+          onFood={(f, created) => { setSub(null); if (created) onFoodCreated(f); setMode('buscar'); pick(f); }} />
+      )}
+    </Modal>
+  );
+}
+
+// ----------------------------------------------------------------------------
+/** Editar, mover, duplicar o borrar una comida cargada. */
+function EditEntry({ log, food, mealNames, maxDate, onClose, onSaved, onDuplicated, onDeleted }: {
+  log: FoodLog; food: Food | null; mealNames: string[]; maxDate: string;
+  onClose: () => void; onSaved: (l: FoodLog) => void; onDuplicated: (l: FoodLog) => void; onDeleted: (id: string) => void;
+}) {
+  const [date, setDate] = useState(log.logged_on);
+  const [time, setTime] = useState(log.logged_at?.slice(0, 5) ?? '');
+  const [meal, setMeal] = useState(log.meal_label ?? mealNames[0]);
+  const [grams, setGrams] = useState(log.grams?.toString() ?? '');
+  const [q, setQ] = useState({ name: log.name, kcal: String(log.kcal), protein: String(log.protein), carbs: String(log.carbs), fat: String(log.fat) });
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const meals = mealNames.includes(meal) ? mealNames : [meal, ...mealNames];
+  const g = num(grams);
+  const values = food && g
+    ? (() => { const m = portion(food, g); return { name: food.name, grams: g, kcal: r1(m.kcal), protein: r1(m.protein), carbs: r1(m.carbs), fat: r1(m.fat) }; })()
+    : { name: q.name.trim() || log.name, grams: log.grams, kcal: num(q.kcal) ?? 0, protein: num(q.protein) ?? 0, carbs: num(q.carbs) ?? 0, fat: num(q.fat) ?? 0 };
+  const row = { logged_on: date, logged_at: time || null, meal_label: meal || null, ...values };
+
+  async function save(dup: boolean) {
+    if (food && !(g && g > 0)) return setErr('Poné la cantidad en gramos.');
+    setBusy(true);
+    const sb = supabaseBrowser();
+    const res = dup
+      ? await sb.from('food_logs').insert({ ...row, student_id: log.student_id, food_id: log.food_id, plan_meal_id: null }).select('*').single()
+      : await sb.from('food_logs').update(row).eq('id', log.id).select('*').single();
+    setBusy(false);
+    if (res.error) return setErr(res.error.message);
+    (dup ? onDuplicated : onSaved)(res.data as FoodLog);
+  }
+
+  return (
+    <Modal title={log.name} onClose={onClose}>
+      <div className="stack-lg">
+        <div className="row wrap" style={{ gap: 14, alignItems: 'flex-end' }}>
+          <div className="field" style={{ width: 170 }}><label htmlFor="ed">Fecha</label>
+            <input id="ed" type="date" className="input" style={{ fontSize: '1.2rem' }} value={date} max={maxDate} onChange={(e) => e.target.value && setDate(e.target.value)} /></div>
+          <div className="field" style={{ width: 110 }}><label htmlFor="et">Hora</label>
+            <input id="et" type="time" className="input" style={{ fontSize: '1.2rem' }} value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          <div className="field grow" style={{ minWidth: 140 }}><label htmlFor="em">Comida</label>
+            <select id="em" className="select" style={{ fontSize: '1.25rem' }} value={meal} onChange={(e) => setMeal(e.target.value)}>
+              {meals.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select></div>
+        </div>
+        {food ? (
+          <div className="row wrap" style={{ gap: 10, alignItems: 'flex-end' }}>
+            <div className="field" style={{ width: 130 }}><label htmlFor="eg">Cantidad (g)</label>
+              <input id="eg" className="input" inputMode="decimal" value={grams} onChange={(e) => setGrams(e.target.value)} /></div>
+            {food.unit_name && food.unit_grams && [0.5, 1, 2].map((n) => (
+              <button key={n} type="button" className="chip" onClick={() => setGrams(String(r1(n * food.unit_grams!)))}>{n === 0.5 ? '½' : n} {food.unit_name}</button>
+            ))}
+          </div>
+        ) : (
+          <div className="stack">
+            <div className="field"><label htmlFor="en">Qué comiste</label><input id="en" className="input" value={q.name} onChange={(e) => setQ({ ...q, name: e.target.value })} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
+              {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
+                <div key={k} className="field"><label htmlFor={`e${k}`}>{k === 'kcal' ? 'kcal' : k === 'protein' ? 'Prot.' : k === 'carbs' ? 'Carb.' : 'Grasa'}</label>
+                  <input id={`e${k}`} className="input" inputMode="decimal" value={q[k]} onChange={(e) => setQ({ ...q, [k]: e.target.value })} /></div>
+              ))}
+            </div>
+          </div>
+        )}
+        <p className="macros-line" style={{ margin: 0 }}><span className="kcal">{Math.round(values.kcal)} kcal</span><span>P <b>{r1(values.protein)}</b></span><span>C <b>{r1(values.carbs)}</b></span><span>G <b>{r1(values.fat)}</b></span></p>
+        {date > todayISO() && <p className="small muted" style={{ margin: 0 }}>Queda planificado para el {fmtDate(date)} y suma a lo de ese día.</p>}
+        {err && <p className="notice red" style={{ margin: 0 }}>{err}</p>}
+        <div className="row wrap">
+          <button className="btn primary" disabled={busy} onClick={() => save(false)}>Guardar cambios</button>
+          <button className="btn" disabled={busy} onClick={() => save(true)}>Duplicar con estos datos</button>
+          <button className="btn ghost" style={{ color: 'var(--red)' }} disabled={busy} onClick={() => onDeleted(log.id)}>Borrar</button>
+        </div>
+      </div>
     </Modal>
   );
 }

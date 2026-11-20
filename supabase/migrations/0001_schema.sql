@@ -817,3 +817,65 @@ begin
   perform cron.unschedule(jobid) from cron.job where jobname = 'entrenamientos-sin-finalizar';
   perform cron.schedule('entrenamientos-sin-finalizar', '*/5 * * * *', 'select public.notify_stale_sessions()');
 end $$;
+
+-- =====================================================================
+-- ALIMENTOS CREADOS POR PROFE Y ALUMNOS: recetas y productos comerciales
+-- =====================================================================
+alter table public.foods
+  add column if not exists kind text not null default 'base' check (kind in ('base','receta','comercial')),
+  add column if not exists barcode text,
+  add column if not exists brand text,
+  add column if not exists creator_name text,
+  add column if not exists creator_role text check (creator_role in ('trainer','student')),
+  add column if not exists recipe_total_grams numeric(7,1),
+  add column if not exists recipe_portions int;
+create unique index if not exists foods_barcode_uidx on public.foods(barcode) where barcode is not null;
+
+-- Autor: se completa solo con quien lo crea (no se puede falsificar desde la app)
+create or replace function public.foods_set_creator()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare p public.profiles%rowtype;
+begin
+  if auth.uid() is not null then
+    select * into p from public.profiles where id = auth.uid();
+    new.created_by := auth.uid();
+    new.creator_name := coalesce(nullif(p.full_name, ''), p.email);
+    new.creator_role := p.role;
+  end if;
+  return new;
+end $$;
+drop trigger if exists foods_creator on public.foods;
+create trigger foods_creator before insert on public.foods
+  for each row execute function public.foods_set_creator();
+
+-- Permisos: todos leen; profe y alumnos crean; cada uno edita lo suyo (el profe, todo)
+create or replace function public.can_edit_food(p_food uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select public.is_trainer() or exists (select 1 from public.foods f where f.id = p_food and f.created_by = auth.uid());
+$$;
+drop policy if exists foods_write on public.foods;
+drop policy if exists foods_insert on public.foods;
+create policy foods_insert on public.foods for insert to authenticated with check (true);
+drop policy if exists foods_update on public.foods;
+create policy foods_update on public.foods for update to authenticated
+  using (public.is_trainer() or created_by = auth.uid()) with check (public.is_trainer() or created_by = auth.uid());
+drop policy if exists foods_delete on public.foods;
+create policy foods_delete on public.foods for delete to authenticated
+  using (public.is_trainer() or created_by = auth.uid());
+
+-- Ingredientes de una receta (el valor de la receta se guarda calculado en foods)
+create table if not exists public.recipe_items (
+  id         uuid primary key default gen_random_uuid(),
+  recipe_id  uuid not null references public.foods(id) on delete cascade,
+  food_id    uuid not null references public.foods(id) on delete restrict,
+  grams      numeric(7,1) not null check (grams > 0),
+  position   int not null default 0
+);
+create index if not exists recipe_items_recipe_idx on public.recipe_items(recipe_id);
+alter table public.recipe_items enable row level security;
+drop policy if exists recipe_items_select on public.recipe_items;
+create policy recipe_items_select on public.recipe_items for select to authenticated using (true);
+drop policy if exists recipe_items_write on public.recipe_items;
+create policy recipe_items_write on public.recipe_items for all to authenticated
+  using (public.can_edit_food(recipe_id)) with check (public.can_edit_food(recipe_id));
+grant select, insert, update, delete on public.recipe_items to authenticated;

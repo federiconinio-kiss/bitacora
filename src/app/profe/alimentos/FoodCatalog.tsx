@@ -6,12 +6,18 @@ import { num } from '@/lib/utils';
 import Modal from '@/components/Modal';
 import { searchFoods } from '@/components/FoodPicker';
 import { IconSearch } from '@/components/Icons';
+import RecipeEditor from '@/components/RecipeEditor';
+import BarcodeScanner from '@/components/BarcodeScanner';
+import { foodOrigin } from '@/lib/foodSources';
 
 export default function FoodCatalog({ initial }: { initial: Food[] }) {
   const [list, setList] = useState(initial);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState<string | null>(null);
   const [edit, setEdit] = useState<Food | 'new' | null>(null);
+  const [recipe, setRecipe] = useState<Food | 'new' | null>(null);
+  const [scan, setScan] = useState(false);
+  const upsert = (f: Food) => setList((l) => (l.some((x) => x.id === f.id) ? l.map((x) => (x.id === f.id ? f : x)) : [...l, f]));
   const cats = useMemo(() => [...new Set(list.map((f) => f.category))].sort((a, b) => a.localeCompare(b, 'es')), [list]);
   const results = useMemo(() => searchFoods(list, q, cat), [list, q, cat]);
 
@@ -22,7 +28,11 @@ export default function FoodCatalog({ initial }: { initial: Food[] }) {
           <h1 className="h-hand">Base de alimentos</h1>
           <p className="type" style={{ margin: 0 }}>{list.length} alimentos · valores cada 100 g (bebidas cada 100 ml)</p>
         </div>
-        <button className="btn primary" onClick={() => setEdit('new')}>+ Nuevo alimento</button>
+        <div className="row wrap" style={{ gap: 8 }}>
+          <button className="btn" onClick={() => setScan(true)}>▥ Escanear código</button>
+          <button className="btn" onClick={() => setRecipe('new')}>＋ Nueva receta</button>
+          <button className="btn primary" onClick={() => setEdit('new')}>+ Nuevo alimento</button>
+        </div>
       </div>
       <label className="row" style={{ maxWidth: 520 }}>
         <IconSearch />
@@ -34,21 +44,26 @@ export default function FoodCatalog({ initial }: { initial: Food[] }) {
       </div>
       <section className="sheet plain scroll-x">
         <table className="ledger">
-          <thead><tr><th>Alimento</th><th className="hide-mobile">Categoría</th><th>kcal</th><th>Prot.</th><th>Carbos</th><th>Grasas</th><th className="hide-mobile">Porción</th></tr></thead>
+          <thead><tr><th>Alimento</th><th className="hide-mobile">Categoría</th><th>kcal</th><th>Prot.</th><th>Carbos</th><th>Grasas</th><th className="hide-mobile">Porción</th><th className="hide-mobile">Creado por</th></tr></thead>
           <tbody>
             {results.map((f) => (
-              <tr key={f.id} onClick={() => setEdit(f)} style={{ cursor: 'pointer' }}>
-                <td><b>{f.name}</b></td>
+              <tr key={f.id} onClick={() => (f.kind === 'receta' ? setRecipe(f) : setEdit(f))} style={{ cursor: 'pointer' }}>
+                <td><b>{f.name}</b>{foodOrigin(f) && <span className="food-origin hide-desktop">{foodOrigin(f)}</span>}</td>
                 <td className="type hide-mobile">{f.category}</td>
                 <td className="ink" style={{ fontSize: '1.2rem' }}>{Math.round(f.kcal)}</td>
                 <td>{f.protein}</td><td>{f.carbs}</td><td>{f.fat}</td>
                 <td className="type hide-mobile">{f.unit_name ? `1 ${f.unit_name} = ${f.unit_grams} g` : '—'}</td>
+                <td className="small hide-mobile">{f.creator_name ? <>{f.creator_name} <span className={`tag ${f.creator_role === 'student' ? 'amber' : 'ink'}`}>{f.creator_role === 'student' ? 'alumno' : 'profe'}</span></> : <span className="muted">Base</span>}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {!results.length && <p className="empty">Sin resultados.</p>}
       </section>
+      {recipe && (
+        <RecipeEditor foods={list} recipe={recipe === 'new' ? null : recipe} onClose={() => setRecipe(null)} onSaved={(f) => { upsert(f); setRecipe(null); }} onDeleted={(id) => { setList((l) => l.filter((x) => x.id !== id)); setRecipe(null); }} />
+      )}
+      {scan && <BarcodeScanner onClose={() => setScan(false)} onFood={(f) => { upsert(f); setScan(false); setQ(f.name); }} />}
       {edit && (
         <EditFood food={edit === 'new' ? null : edit} cats={cats} defaultName={edit === 'new' ? q : ''} onClose={() => setEdit(null)}
           onSaved={(f) => { setList((l) => (l.some((x) => x.id === f.id) ? l.map((x) => (x.id === f.id ? f : x)) : [...l, f])); setEdit(null); }}

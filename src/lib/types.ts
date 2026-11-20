@@ -162,6 +162,14 @@ export interface Food {
   fat: number;
   unit_name: string | null;
   unit_grams: number | null;
+  kind?: 'base' | 'receta' | 'comercial';
+  barcode?: string | null;
+  brand?: string | null;
+  created_by?: string | null;
+  creator_name?: string | null;
+  creator_role?: 'trainer' | 'student' | null;
+  recipe_total_grams?: number | null;
+  recipe_portions?: number | null;
 }
 
 export interface DietPlan {

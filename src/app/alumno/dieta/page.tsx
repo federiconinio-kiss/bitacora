@@ -10,7 +10,8 @@ import DietTabs from './DietTabs';
 export default async function StudentDietPage({ searchParams }: { searchParams: Promise<{ fecha?: string; ver?: string }> }) {
   const { fecha, ver } = await searchParams;
   const { sb, me } = await requireUser('student');
-  const date = fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) && fecha <= todayISO() ? fecha : todayISO();
+  const limit = new Date(); limit.setDate(limit.getDate() + 7);
+  const date = fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) && fecha <= todayISO(limit) ? fecha : todayISO();
   const [plan, { data: logs }, { data: checkin }, { data: foods }] = await Promise.all([
     getActiveDiet(sb, me.id),
     sb.from('food_logs').select('*').eq('student_id', me.id).eq('logged_on', date).order('logged_at', { nullsFirst: false }).order('created_at'),

@@ -4,12 +4,13 @@ import type { Food } from '@/lib/types';
 import Modal from './Modal';
 import { IconSearch } from './Icons';
 import { norm } from './ExercisePicker';
+import { foodOrigin } from '@/lib/foodSources';
 
 export function searchFoods(list: Food[], q: string, cat: string | null) {
   const words = norm(q).split(/\s+/).filter(Boolean);
   return list
     .filter((f) => !cat || f.category === cat)
-    .filter((f) => { const hay = norm(`${f.name} ${f.category}`); return words.every((w) => hay.includes(w)); })
+    .filter((f) => { const hay = norm(`${f.name} ${f.category} ${f.brand ?? ''} ${f.barcode ?? ''}`); return words.every((w) => hay.includes(w)); })
     .sort((a, b) => {
       const qa = norm(a.name).startsWith(norm(q)) ? 0 : 1;
       const qb = norm(b.name).startsWith(norm(q)) ? 0 : 1;
@@ -18,10 +19,15 @@ export function searchFoods(list: Food[], q: string, cat: string | null) {
 }
 
 export function FoodMacrosLine({ f }: { f: Food }) {
+  const origin = foodOrigin(f);
   return (
-    <span className="type" style={{ display: 'block' }}>
-      {f.category} · c/100 g: {Math.round(f.kcal)} kcal · P {f.protein} · C {f.carbs} · G {f.fat}
-      {f.unit_name && f.unit_grams ? ` · 1 ${f.unit_name} = ${f.unit_grams} g` : ''}
+    <span style={{ display: 'block' }}>
+      <span className="macros-line">
+        <span>c/100 g:</span><b>{Math.round(f.kcal)} kcal</b><span>P <b>{f.protein}</b></span><span>C <b>{f.carbs}</b></span><span>G <b>{f.fat}</b></span>
+        {f.unit_name && f.unit_grams ? <span>· 1 {f.unit_name} = {f.unit_grams} g</span> : null}
+      </span>
+      <span className="type" style={{ display: 'block' }}>{f.category}</span>
+      {origin && <span className="food-origin">{origin}</span>}
     </span>
   );
 }
