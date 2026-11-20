@@ -43,3 +43,24 @@ export function deviationText(total: Macros, target: Macros) {
 
 /** Desvío "significativo": más de 10 % en calorías. */
 export const bigDeviation = (total: Macros, target: Macros) => target.kcal > 0 && Math.abs(total.kcal - target.kcal) > target.kcal * 0.1;
+
+import { targets } from './nutrition';
+
+/** Objetivo diario general del plan (calculado con el gasto y los g/kg); null si faltan datos. */
+export function planTarget(p: Pick<FullDietPlan, 'tdee' | 'weight_kg' | 'adjust_pct' | 'protein_per_kg' | 'fat_per_kg'>): Macros | null {
+  if (!p.tdee || !p.weight_kg) return null;
+  return targets(Number(p.tdee), Number(p.adjust_pct), Number(p.weight_kg), Number(p.protein_per_kg), Number(p.fat_per_kg));
+}
+
+/** ¿El plan tiene comidas cargadas? (si no, es sólo un objetivo diario) */
+export const hasMeals = (p: FullDietPlan) => p.days.some((d) => d.meals.some((m) => m.items.length));
+
+/**
+ * Objetivo de un día: el del día tipo que corresponde (si tiene objetivo cargado)
+ * o, si no, el objetivo general del plan.
+ */
+export function targetForWeekday(p: FullDietPlan, weekday: number): { target: Macros | null; day: Day | null } {
+  const day = dayForWeekday(p.days, weekday);
+  if (day && day.target_kcal > 0) return { target: dayTarget(day), day };
+  return { target: planTarget(p), day };
+}

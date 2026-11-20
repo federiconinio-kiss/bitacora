@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { DietCheckin, Food, FoodLog, FullDietPlan } from '@/lib/types';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { COMPLIED, dayForWeekday, dayTarget, deviationText, logTotals, mealTotals } from '@/lib/diet';
+import { COMPLIED, deviationText, hasMeals, logTotals, mealTotals, targetForWeekday } from '@/lib/diet';
 import { portion, r1, type Macros } from '@/lib/nutrition';
 import { fmtDate, isoWeekday, num, todayISO } from '@/lib/utils';
 import MacroCounter from '@/components/MacroCounter';
@@ -33,8 +33,7 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
   const [err, setErr] = useState<string | null>(null);
   const isToday = date === todayISO();
 
-  const day = plan ? dayForWeekday(plan.days, isoWeekday(date)) : null;
-  const target: Macros | null = day ? dayTarget(day) : null;
+  const { target, day } = plan ? targetForWeekday(plan, isoWeekday(date)) : { target: null as Macros | null, day: null };
   const total = useMemo(() => logTotals(logs), [logs]);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2200); };
 
@@ -185,7 +184,7 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
       </section>
 
       {plan && target && (
-        <CloseDay studentId={studentId} date={date} planId={plan.id} total={total} target={target} checkin={checkin}
+        <CloseDay studentId={studentId} date={date} planId={plan.id} total={total} target={target} checkin={checkin} goalOnly={!hasMeals(plan)}
           onSaved={(c) => { setCheckin(c); flash('Le enviamos el resumen a tu profe'); }} />
       )}
 
@@ -200,8 +199,8 @@ export default function FoodDiary({ studentId, date, plan, initialLogs, initialC
 }
 
 // ----------------------------------------------------------------------------
-function CloseDay({ studentId, date, planId, total, target, checkin, onSaved }: {
-  studentId: string; date: string; planId: string; total: Macros; target: Macros; checkin: DietCheckin | null; onSaved: (c: DietCheckin) => void;
+function CloseDay({ studentId, date, planId, total, target, checkin, onSaved, goalOnly }: {
+  studentId: string; date: string; planId: string; total: Macros; target: Macros; checkin: DietCheckin | null; onSaved: (c: DietCheckin) => void; goalOnly?: boolean;
 }) {
   const [complied, setComplied] = useState<DietCheckin['complied'] | null>(checkin?.complied ?? null);
   const [comment, setComment] = useState(checkin?.comment ?? '');
@@ -232,10 +231,10 @@ function CloseDay({ studentId, date, planId, total, target, checkin, onSaved }: 
         {checkin && !changed && <span className="stamp green" style={{ fontSize: '.8rem' }}>Enviado</span>}
       </div>
       <p style={{ margin: 0 }}>
-        Desvío del plan: <span className="mark ink" style={{ fontSize: '1.35rem' }}>{deviationText(total, target)}</span>
+        {goalOnly ? 'Diferencia con tu objetivo' : 'Desvío del plan'}: <span className="mark ink" style={{ fontSize: '1.35rem' }}>{deviationText(total, target)}</span>
       </p>
       <div className="stack" style={{ gap: 6 }}>
-        <span className="type">¿Pudiste cumplir el plan?</span>
+        <span className="type">{goalOnly ? '¿Llegaste a tu objetivo?' : '¿Pudiste cumplir el plan?'}</span>
         <div className="chips" style={{ flexWrap: 'wrap' }} role="radiogroup" aria-label="¿Pudiste cumplir el plan?">
           {(Object.keys(COMPLIED) as DietCheckin['complied'][]).map((k) => (
             <button key={k} type="button" role="radio" aria-checked={complied === k} className={`chip ${complied === k ? 'on' : ''}`} onClick={() => setComplied(k)}>{COMPLIED[k].label}</button>

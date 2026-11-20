@@ -295,7 +295,7 @@ h3.h-hand { font-size: 1.6rem; }
 .macro-counter { display: flex; flex-direction: column; gap: 6px; }
 .macro-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 18px; }
 .macro-counter.compact .macro-rows { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 10px; }
-.macro-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.macro-head { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
 .macro-label { font-family: var(--f-type); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--graphite-2); }
 .macro-val { font-family: var(--f-hand); font-size: 1.25rem; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .macro-counter.compact .macro-val { font-size: 1.05rem; }
@@ -306,7 +306,7 @@ h3.h-hand { font-size: 1.6rem; }
 .macro-state { font-family: var(--f-type); font-size: .68rem; color: var(--graphite-3); min-height: 1em; }
 .macro-row.ok .macro-state { color: var(--green); }
 .macro-row.over .macro-state { color: var(--red); }
-.macro-counter.compact .macro-state { display: none; }
+
 .sticky-counter { position: sticky; bottom: 70px; z-index: 20; background: rgba(252, 249, 241, .97); border: 2px solid var(--graphite); border-radius: 10px; padding: 8px 12px; box-shadow: 0 8px 18px -10px rgba(0,0,0,.4); }
 @media (min-width: 900px) { .sticky-counter { bottom: 12px; } }
 @media (max-width: 520px) { .macro-counter.compact .macro-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -347,3 +347,7 @@ h3.h-hand { font-size: 1.6rem; }
 .rest-chip { font-family: var(--f-type); font-size: .8rem; color: var(--graphite-2); background: none; border: 1.5px dashed var(--graphite-3); border-radius: 999px; padding: 1px 8px; cursor: pointer; }
 .rest-chip b { color: var(--graphite); }
 .rest-chip:active { background: var(--highlight); }
+.macro-pct { font-weight: 700; color: var(--graphite); }
+.macro-row.ok .macro-pct { color: var(--green); }
+.macro-row.over .macro-pct { color: var(--red); }
+.macro-counter.compact .macro-state { display: block; font-size: .62rem; }

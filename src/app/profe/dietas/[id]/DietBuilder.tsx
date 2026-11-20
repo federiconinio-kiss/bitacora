@@ -210,8 +210,12 @@ export default function DietBuilder({ initial, student, foods: initialFoods, inf
 
   // ------------------------------- Publicar -------------------------------
   async function publish(on: boolean) {
-    if (on && !p.days.some((d) => d.meals.some((m) => m.items.length))) return setErr('Agregá al menos una comida con alimentos antes de publicar.');
-    if (on && p.days.some((d) => !d.target_kcal)) return setErr('Hay días sin objetivo de calorías. Completá el cálculo y tocá “Aplicar a todos los días”.');
+    const withMeals = p.days.some((d) => d.meals.some((m) => m.items.length));
+    if (on && !withMeals) {
+      if (!target) return setErr('Completá el cálculo del gasto calórico (paso 1) para publicar el objetivo diario.');
+      if (!confirm(`Vas a publicar sólo el objetivo diario (${target.kcal.toLocaleString('es-AR')} kcal · P ${target.protein} g · C ${target.carbs} g · G ${target.fat} g), sin comidas. El alumno lo va a ver en su diario. ¿Publicar?`)) return;
+    }
+    if (on && withMeals && p.days.some((d) => d.meals.some((m) => m.items.length) && !d.target_kcal)) return setErr('Hay días con comidas pero sin objetivo de calorías. Completá el cálculo y tocá “Aplicar a todos los días”.');
     if (on) {
       const { error } = await sb.from('diet_plans').update({ published: false }).eq('student_id', p.student_id).neq('id', p.id);
       if (fail(error)) return;
@@ -370,7 +374,7 @@ export default function DietBuilder({ initial, student, foods: initialFoods, inf
         <h2 className="h-hand">3. Comidas por día tipo</h2>
         {p.days.length === 0 ? (
           <div className="sheet plain stack">
-            <p style={{ margin: 0 }}>¿Cómo querés organizar la semana?</p>
+            <p style={{ margin: 0 }}>¿Le armás las comidas? <span className="muted">Es opcional: si sólo querés que el alumno vea su objetivo diario y cargue lo que come, tocá directamente “Publicar para el alumno”.</span></p>
             <div className="row wrap">
               <button className="btn primary" onClick={() => startTemplate('two')}>Día de entrenamiento + día de descanso</button>
               <button className="btn" onClick={() => startTemplate('one')}>Un solo día para toda la semana</button>

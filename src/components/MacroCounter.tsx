@@ -34,6 +34,8 @@ export default function MacroCounter({ total, target, compact, title }: { total:
               </div>
               <div className="macro-track" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div>
               <span className="macro-state">
+                {t ? <b className="macro-pct">{Math.round((v / t) * 100)} %</b> : null}
+                {t ? ' · ' : ''}
                 {st === 'ok' ? '✓ en objetivo' : st === 'over' ? `+${(v - t).toLocaleString('es-AR')} de más` : st === 'under' ? `faltan ${(t - v).toLocaleString('es-AR')}` : ''}
               </span>
             </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { DietCheckin, DietPlan, FoodLog, FullRoutine, Measurement, Profile, SetLog, TrainingInfo } from '@/lib/types';
 import NutritionHistory from './NutritionHistory';
 import { GOALS } from '@/lib/nutrition';
+import { planTarget } from '@/lib/diet';
 import TrainingInfoForm, { levelLabel } from '@/components/LevelPicker';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { daysBetween, fmtDate, initials, num, todayISO } from '@/lib/utils';
@@ -142,7 +143,7 @@ export default function StudentDetail({ student, routines, logs, measurements, i
           {diets.length === 0 && (
             <div className="sheet empty">
               <p className="ink">Todavía no tiene plan de alimentación.</p>
-              <p className="muted small">Calculás su gasto calórico, elegís el objetivo y armás las comidas por día tipo.</p>
+              <p className="muted small">Calculás su gasto calórico y su objetivo diario. Las comidas por día tipo son opcionales: podés publicar sólo el objetivo y que el alumno vaya cargando lo que come.</p>
             </div>
           )}
           <div className="grid-2">
@@ -156,6 +157,11 @@ export default function StudentDetail({ student, routines, logs, measurements, i
                   {GOALS.find((g) => g.key === d.goal_type)?.label} · desde {fmtDate(d.start_date, { day: 'numeric', month: 'short', year: 'numeric' })}
                   {d.tdee ? ` · gasto ${d.tdee.toLocaleString('es-AR')} kcal` : ''}
                 </p>
+                {planTarget(d) && (
+                  <p className="ink" style={{ margin: '4px 0', fontSize: '1.3rem' }}>
+                    Objetivo: {planTarget(d)!.kcal.toLocaleString('es-AR')} kcal · P {planTarget(d)!.protein} · C {planTarget(d)!.carbs} · G {planTarget(d)!.fat}
+                  </p>
+                )}
                 <div className="row wrap" style={{ marginTop: 12 }}>
                   <Link className="btn sm primary" href={`/profe/dietas/${d.id}`}>Editar</Link>
                 </div>

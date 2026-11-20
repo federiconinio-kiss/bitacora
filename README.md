@@ -151,6 +151,8 @@ En el perfil de cada alumno, pestaña **Nutrición**:
 2. **Objetivo:** baja de grasa, recomposición, mantenimiento o aumento de masa, con ajuste en % sobre el gasto. Proteína y grasas en g/kg; los carbohidratos completan las calorías. Avisa si el objetivo queda por debajo del metabolismo basal o de un mínimo razonable.
 3. **Comidas por día tipo** (por ejemplo, día de entrenamiento y día de descanso, con los días de la semana de cada uno). Los alimentos se buscan en la base y un contador muestra cuánto del objetivo cubren.
 
+**Sólo objetivo diario:** las comidas son opcionales. Si el alumno no quiere una dieta armada, el profe completa los pasos 1 y 2 y publica: el alumno ve su objetivo de calorías y macros y, a medida que carga lo que come en el diario, un contador con barras y el % de avance de cada uno.
+
 El alumno ve su plan en **Dieta**, con su objetivo de calorías y macros del día, el detalle de cada comida y un aviso de que no reemplaza la consulta con un nutricionista.
 
 **Diario de comidas** (todos los alumnos, tengan plan o no): en **Dieta → Diario de comidas** cargan día a día lo que comen y a qué hora, buscando en la base de alimentos o con un **agregado rápido** de calorías y macros. Un contador muestra lo comido contra el objetivo.

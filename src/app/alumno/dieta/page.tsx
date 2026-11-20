@@ -17,7 +17,7 @@ export default async function StudentDietPage({ searchParams }: { searchParams: 
     sb.from('diet_checkins').select('*').eq('student_id', me.id).eq('day', date).maybeSingle(),
     sb.from('foods').select('*').order('name'),
   ]);
-  const hasPlan = !!plan && plan.days.length > 0;
+  const hasPlan = !!plan;
   const tab = ver === 'plan' && hasPlan ? 'plan' : 'diario';
 
   return (
