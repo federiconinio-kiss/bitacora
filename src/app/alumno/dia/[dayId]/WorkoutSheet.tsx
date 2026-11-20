@@ -5,6 +5,7 @@ import type { Exercise, FullRoutine, SetLog } from '@/lib/types';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { fmtDate, fmtKg, num, todayISO } from '@/lib/utils';
 import VideoButton from '@/components/VideoButton';
+import { setText } from '@/components/History';
 import Celebration from '@/components/Celebration';
 import { notify } from '@/lib/notify';
 import RestTimer, { type Rest } from '@/components/RestTimer';
@@ -275,13 +276,13 @@ export default function WorkoutSheet({ studentId, date, day, initial, previous, 
                         <input className="cell-in" inputMode="decimal" enterKeyHint="next" aria-label={`Peso serie ${n}`}
                           placeholder={rex.target_weight != null && !isSwap ? String(rex.target_weight) : p?.weight?.toString() ?? 'kg'}
                           value={c.weight} onFocus={(e) => { focusWeight(rex, n); selectAll(e.currentTarget); }} onChange={(e) => set(k, 'weight', e.target.value)} onBlur={() => saveCell(rex, n)} />
-                        {p && <span className="prev">antes {p.weight ?? '–'}</span>}
+                        {p && <span className="prev">antes {setText(p.weight, p.reps)}</span>}
                       </td>
                       <td>
                         <input className="cell-in" inputMode="numeric" enterKeyHint="next" aria-label={`Repeticiones serie ${n}`}
                           placeholder={`${rex.rep_min}–${rex.rep_max}`} value={c.reps} onFocus={(e) => selectAll(e.currentTarget)}
                           onChange={(e) => set(k, 'reps', e.target.value.replace(/\D/g, ''))} onBlur={() => saveCell(rex, n)} />
-                        {p && <span className="prev">antes {p.reps ?? '–'}</span>}
+                        
                       </td>
                       <td className="ok">
                         <span className={`check ${r == null ? 'hidden' : ''}`} style={top ? { color: 'var(--red)' } : undefined} title={top ? 'Tope del rango' : 'Hecha'}>

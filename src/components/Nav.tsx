@@ -1,9 +1,15 @@
 'use client';
-import Link from 'next/link';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { IconApple, IconBell, IconBook, IconChart, IconLogo, IconLogout, IconPlan, IconUser, IconUsers } from './Icons';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: number; exact?: boolean };
+
+/** Contenido del link que se marca al instante mientras la sección carga. */
+function TabInner({ children }: { children: React.ReactNode }) {
+  const { pending } = useLinkStatus();
+  return <span className={`tab-inner ${pending ? 'pending' : ''}`}>{children}{pending && <span className="tab-spinner" aria-hidden="true" />}</span>;
+}
 
 function useActive() {
   const path = usePathname();
@@ -39,8 +45,7 @@ export function StudentNav({ name }: { name: string }) {
       <nav className="tabbar" aria-label="Secciones">
         {items.map((it) => (
           <Link key={it.href} href={it.href} className={isOn(it) ? 'on' : ''}>
-            {it.icon}
-            {it.label}
+            <TabInner>{it.icon}{it.label}</TabInner>
           </Link>
         ))}
       </nav>
@@ -64,7 +69,7 @@ export function TrainerNav({ pending }: { pending: number }) {
           <nav className="topnav" aria-label="Secciones">
             {items.map((it) => (
               <Link key={it.href} href={it.href} className={isOn(it) ? 'on' : ''}>
-                {it.label} {!!it.badge && <span className="badge">{it.badge}</span>}
+                <TabInner>{it.label} {!!it.badge && <span className="badge">{it.badge}</span>}</TabInner>
               </Link>
             ))}
           </nav>
@@ -75,9 +80,7 @@ export function TrainerNav({ pending }: { pending: number }) {
       <nav className="tabbar trainer" aria-label="Secciones">
         {items.map((it) => (
           <Link key={it.href} href={it.href} className={isOn(it) ? 'on' : ''}>
-            {it.icon}
-            {it.label}
-            {!!it.badge && <span className="badge">{it.badge}</span>}
+            <TabInner>{it.icon}{it.label}{!!it.badge && <span className="badge">{it.badge}</span>}</TabInner>
           </Link>
         ))}
       </nav>
