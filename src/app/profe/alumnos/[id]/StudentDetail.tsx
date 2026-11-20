@@ -9,7 +9,7 @@ import { planTarget } from '@/lib/diet';
 import TrainingInfoForm, { levelLabel } from '@/components/LevelPicker';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { daysBetween, fmtDate, initials, num, todayISO } from '@/lib/utils';
-import { duplicateRoutine } from '@/lib/routineOps';
+import { confirmAndDeleteRoutine, duplicateRoutine } from '@/lib/routineOps';
 import { MeasurementsHistory, TrainingHistory } from '@/components/History';
 import { IconBack } from '@/components/Icons';
 import { deleteStudent, sendAccessEmail, setStudentActive, setTempPassword } from '../../actions';
@@ -61,6 +61,20 @@ export default function StudentDetail({ student, routines, logs, measurements, i
     setBusy(false);
     if (error) return setMsg({ ok: false, text: error.message });
     router.push(`/profe/dietas/${data.id}`);
+  }
+
+  async function removeRoutine(r: FullRoutine) {
+    setBusy(true);
+    try {
+      if (await confirmAndDeleteRoutine(supabaseBrowser(), r)) {
+        setMsg({ ok: true, text: `Rutina “${r.name}” borrada.` });
+        router.refresh();
+      }
+    } catch (e) {
+      setMsg({ ok: false, text: 'No se pudo borrar: ' + (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function duplicate(r: FullRoutine) {
@@ -128,6 +142,7 @@ export default function StudentDetail({ student, routines, logs, measurements, i
                 <div className="row wrap" style={{ marginTop: 12 }}>
                   <Link className="btn sm primary" href={`/profe/rutinas/${r.id}`}>Editar</Link>
                   <button className="btn sm" disabled={busy} onClick={() => duplicate(r)}>Duplicar</button>
+                  <button className="btn sm ghost" style={{ color: 'var(--red)' }} disabled={busy} onClick={() => removeRoutine(r)}>Borrar</button>
                 </div>
               </article>
             ))}

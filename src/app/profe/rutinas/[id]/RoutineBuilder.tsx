@@ -12,6 +12,7 @@ import type { Profile, RoutineReview, TrainingInfo } from '@/lib/types';
 import AiReview from './AiReview';
 import TemplatePicker from './TemplatePicker';
 import { applyTemplate as loadTemplate } from '@/lib/applyTemplate';
+import { confirmAndDeleteRoutine } from '@/lib/routineOps';
 import type { RoutineTemplate } from '@/lib/templates';
 import { notify } from '@/lib/notify';
 
@@ -88,6 +89,14 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
       router.refresh();
     } catch (e) {
       setErr('No se pudo cargar la plantilla: ' + (e as Error).message);
+    }
+  }
+
+  async function removeRoutine() {
+    try {
+      if (await confirmAndDeleteRoutine(sb, r)) router.replace(`/profe/alumnos/${student.id}`);
+    } catch (e) {
+      setErr('No se pudo borrar la rutina: ' + (e as Error).message);
     }
   }
 
@@ -307,6 +316,10 @@ export default function RoutineBuilder({ initial, student, exercises: initialEx,
       <div className="row wrap">
         <button className="btn" onClick={() => addDay()}><IconPlus /> Agregar día</button>
         {r.days.length > 0 && <button className="btn ghost" onClick={() => setTplOpen(true)}>Agregar desde una plantilla de la guía</button>}
+      </div>
+
+      <div className="row" style={{ justifyContent: 'flex-end' }}>
+        <button className="btn ghost sm" style={{ color: 'var(--red)' }} onClick={removeRoutine}><IconTrash size={16} /> Borrar esta rutina</button>
       </div>
 
       <AiReview

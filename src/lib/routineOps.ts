@@ -26,3 +26,28 @@ export async function duplicateRoutine(sb: SupabaseClient, r: FullRoutine, stude
   }
   return nr.id as string;
 }
+
+/**
+ * Borra una rutina después de confirmarlo. Si tiene series registradas avisa que se pierde
+ * ese historial (se borra en cascada) y sugiere pasarla a borrador. Devuelve true si se borró.
+ */
+export async function confirmAndDeleteRoutine(sb: SupabaseClient, r: FullRoutine): Promise<boolean> {
+  const rexIds = r.days.flatMap((d) => d.exercises.map((e) => e.id));
+  let logs = 0;
+  if (rexIds.length) {
+    const { count } = await sb.from('set_logs').select('id', { count: 'exact', head: true }).in('routine_exercise_id', rexIds);
+    logs = count ?? 0;
+  }
+  const lines = [`¿Borrar la rutina “${r.name}”?`];
+  if (r.published) lines.push('Es la rutina publicada: el alumno deja de verla.');
+  if (logs > 0) {
+    lines.push(`\nATENCIÓN: tiene ${logs} ${logs === 1 ? 'serie registrada' : 'series registradas'} por el alumno. Se borra también ese historial y no se puede recuperar.`);
+    lines.push('Si solo querés que no la vea, usá "Pasar a borrador".');
+  }
+  lines.push('\nEsta acción no se puede deshacer.');
+  if (!confirm(lines.join('\n'))) return false;
+  if (logs > 0 && !confirm(`Confirmá otra vez: se borran la rutina y ${logs} series del historial.`)) return false;
+  const { error } = await sb.from('routines').delete().eq('id', r.id);
+  if (error) throw error;
+  return true;
+}
