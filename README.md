@@ -154,7 +154,7 @@ Antes de publicar una rutina, el profe puede pedirle a Claude (IA de Anthropic) 
 Cada revisión cuesta aproximadamente USD 0,05–0,15 y tarda entre 1 y 2 minutos.
 
 ### Plantillas de la guía y sugerencia de bloque
-Las rutinas de la *Guía de hipertrofia* de Fede (Notion) están cargadas como plantillas en `src/lib/templates.ts`: principiante 3 días, intermedia 4 días, avanzada 5 días, foco glúteos y piernas (con día 5 opcional), Push Pull Legs, Weider, Heavy Duty básico, intermedio y avanzado, y los planes de fuerza e hipertrofia por niveles.
+Las rutinas de la *Guía de hipertrofia* de Fede (Notion) están cargadas como plantillas en `src/lib/templates.ts`: principiante 3 días, intermedia 4 días, avanzada 5 días, hipertrofia avanzado 6 días, foco glúteos y piernas (con día 5 opcional), Push Pull Legs, Weider, Heavy Duty básico, intermedio y avanzado, y los planes de fuerza e hipertrofia por niveles.
 - En una rutina, **Usar una plantilla de la guía** carga los días, ejercicios, series, rango de reps, pausa, el RIR o la técnica como nota y los reemplazos. La progresión de la plantilla queda en *Indicaciones generales*. Todo queda editable; las cargas las elige el alumno en su primera sesión.
 - **Sugerir con IA** mira el nivel, los días disponibles, el historial de rutinas, la asistencia y la evolución del 1RM estimado, y recomienda qué plantilla le toca según la *Estrategia para combinar métodos* (con duración, ajustes y cuándo cambiar).
 - Si cambiás la guía en Notion, hay que actualizar `src/lib/templates.ts` y el resumen para la IA en `src/lib/ai/guide.ts`.

@@ -479,6 +479,50 @@ export const TEMPLATES: RoutineTemplate[] = [
       ] },
     ],
   },
+  {
+    id: 'hipertrofia-avanzado', name: 'Hipertrofia avanzado — torso / pierna × 3 (6 días)', method: 'hipertrofia', levels: ['avanzado'], daysPerWeek: 6,
+    forWho: 'Avanzados con 6 días y buena recuperación. Torso / pierna tres veces por semana con ondulación diaria: días pesados (6–8), moderados (8–12) y livianos (12–20). Volúmenes del bloque de acumulación: pecho ~17, espalda ~17, cuádriceps 16, femorales ~17, glúteos ~24 contando compuestos.',
+    role: 'Volumen máximo en el nivel avanzado (alternativa a Push Pull Legs).',
+    progression: [
+      'Acumulación 3–6 semanas: RPE 6–8 (RIR 2–4) en compuestos y RPE 8–9 en aislamientos. Sumar 1 serie por semana a los grupos prioritarios, hasta 18–24 series.',
+      'Intensificación 3–4 semanas: bajar ~20–30% las series, compuestos en 3–10 reps, RPE 7,5–9,5, subir la carga.',
+      'Semana de marcas: AMRAP al 85–90% del 1RM en los principales (hack, banca, rumano, remo en T).',
+      'Fin de cada mesociclo: checklist de recuperación (motivación, sueño, rendimiento, estrés, dolores). Con 2 o más "sí", descarga: mitad de las series, misma carga o −5%, RPE 2–3 puntos menos. Descarga obligatoria tras 3 mesociclos seguidos.',
+      'Ondulación: día A pesado, B moderado, C liviano. Si no recupera, pasar el día C de pierna al domingo o quitar 1 serie por ejercicio.',
+    ].join('\n'),
+    pros: ['Frecuencia 3 por músculo con sesiones de calidad.', 'Permite los volúmenes más altos sin sesiones eternas.', 'La ondulación diaria reparte la fatiga.'],
+    cons: ['Exige 6 días y muy buena recuperación (sueño y comida).', 'Si se faltan días se desordena la ondulación.', 'Solo para avanzados: a un intermedio le sobra volumen.'],
+    days: [
+      { title: 'Torso A — pesado', dow: 1, exercises: [
+        x(BANCA, 4, '6-8', 180, 'RPE 7–8'), x(REMO_T, 4, '6-8', 150, 'RPE 7–8'), x(MILITAR_M, 3, '6-8', 150, 'RPE 7–8'),
+        x(DOMI, 3, '6-8', 150, 'RPE 7–8 · con lastre si hace falta'), x(LAT, 4, '10-15', 60, 'RPE 8–9'),
+        x(CURL, 2, '8-10', 90, 'RPE 8'), x(FRANCES, 2, '8-10', 90, 'RPE 8'),
+      ] },
+      { title: 'Pierna A — pesado', dow: 2, exercises: [
+        x(HACK, 4, '6-8', 180, 'RPE 7–8'), x(RUMANO, 3, '6-8', 180, 'RPE 7 · nunca al fallo'), x(HIP, 3, '6-8', 150, 'RPE 8'),
+        x(FEM_S, 3, '8-10', 90, 'RPE 8–9'), x(GEM_P, 4, '8-10', 90, 'RPE 8–9'),
+      ] },
+      { title: 'Torso B — moderado', dow: 3, exercises: [
+        x(INCL_M, 3, '8-12', 120, 'RPE 7–8'), x(JALON_N, 3, '8-12', 120, 'RPE 7–8'), x(REMO_U, 3, '10-12', 90, 'RPE 8 · por brazo, codo pegado'),
+        x(FONDOS_P, 3, '8-12', 120, 'RPE 8', [HAMMER]), x(LAT_P, 3, '12-15', 60, 'RPE 8–9'), x(FACE, 3, '12-15', 60, 'RPE 8–9'),
+        x(CURL_I, 3, '10-12', 60, 'RPE 8–9'), x(SOBRE_CAB, 3, '10-12', 60, 'RPE 8–9'),
+      ] },
+      { title: 'Pierna B — moderado', dow: 4, exercises: [
+        x(BULGARA, 3, '8-12', 120, 'RPE 8 · por pierna'), x(PRENSA, 3, '10-12', 120, 'RPE 8'), x(FEM_A, 3, '10-12', 90, 'RPE 8–9'),
+        x('Hiperextensiones', 3, '10-12', 90, 'RPE 8 · foco glúteo'), x(ABDUC, 3, '12-15', 60, 'RPE 9'), x(GEM_S, 4, '12-15', 60, 'RPE 8–9'),
+      ] },
+      { title: 'Torso C — liviano', dow: 5, exercises: [
+        x(SMITH_I, 3, '10-15', 120, 'RPE 7–8', [HAMMER]), x(REMO_AB, 3, '10-15', 120, 'RPE 8'), x(PULLOVER, 2, '12-15', 60, 'RPE 8–9'),
+        x(CRUCE_BA, 3, '12-15', 60, 'RPE 9'), x(PAJARO, 3, '15-20', 60, 'RPE 9', [PAJARO_M]), x('Elevaciones laterales inclinado', 3, '15-20', 60, 'RPE 9'),
+        x(MARTILLO, 3, '10-15', 60, 'RPE 9'), x(SOGA, 3, '12-15', 60, 'RPE 9'),
+      ] },
+      { title: 'Pierna C — liviano', dow: 6, exercises: [
+        x('Sentadilla péndulo', 3, '10-15', 120, 'RPE 8', ['Sentadilla en Smith']), x('Peso muerto rumano con mancuernas', 3, '10-12', 120, 'RPE 7–8'),
+        x('Hip thrust en máquina', 3, '12-15', 90, 'RPE 8–9'), x(CUAD, 3, '12-15', 60, 'RPE 9'), x(FEM_S, 2, '12-15', 60, 'RPE 9'),
+        x('Gemelos en prensa', 4, '12-15', 60, 'RPE 9'), x(ADUC, 2, '12-15', 60, 'RPE 8–9'),
+      ] },
+    ],
+  },
 ];
 
 export const templateById = (id: string) => TEMPLATES.find((t) => t.id === id) ?? null;
