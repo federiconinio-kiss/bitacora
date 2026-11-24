@@ -400,3 +400,10 @@ h3.h-hand { font-size: 1.6rem; }
 .log-main:active { background: rgba(251, 233, 122, .35); }
 .log-main .macros-line { gap: 0 8px; font-size: .78rem; }
 .log-main .macros-line .kcal { font-size: 1.1rem; }
+
+/* ---------- Teclado en iPhone ---------- */
+/* Mientras se escribe, la barra de secciones no tapa la planilla. */
+html.kb-open .tabbar, html.kb-open .active-workout-bar { display: none; }
+html.kb-open .rest-timer { bottom: 0; }
+/* Fuerza a iOS a reubicar las barras fijas después de cerrar el teclado. */
+html.vv-reflow .tabbar, html.vv-reflow .rest-timer, html.vv-reflow .active-workout-bar, html.vv-reflow .topbar { transform: translateZ(0); }

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import ViewportFix from '@/components/ViewportFix';
 
 export const metadata: Metadata = {
   title: 'Entrena con Fede — rutinas y progreso',
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Courier+Prime:wght@400;700&family=Patrick+Hand&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>{children}<ViewportFix /></body>
     </html>
   );
 }
